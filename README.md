@@ -118,7 +118,8 @@
 ## 🗃️ 테이블 명세서
 
 > [테이블 명세서](https://docs.google.com/spreadsheets/d/1bW-t6EJQ1NW_uqkoiAgVqqeyeDuuh2muPwpv8ee4Y2s/edit?usp=sharing)
-> 
+> <img width="1592" height="597" alt="0001" src="https://github.com/user-attachments/assets/1bba87ee-df74-443b-aea1-00cbdd34d545" />
+
 > <img width="1592" height="577" alt="0001" src="https://github.com/user-attachments/assets/3ac9c89f-ec03-4d4e-aacd-ff9e8104c515" />
 
 > <img width="1592" height="628" alt="0002" src="https://github.com/user-attachments/assets/3a107a6c-a74c-4e3a-a036-8da812653d8b" />
