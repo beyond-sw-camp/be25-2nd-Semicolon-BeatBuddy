@@ -121,3 +121,6 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk
+
+### env 파일 ###
+.env
