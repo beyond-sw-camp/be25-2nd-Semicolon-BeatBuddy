@@ -31,7 +31,7 @@ spring:
     import: application-secret.yml
 
 mybatis:
-  type-aliases-package: com.beyond.beatbuddy.*.entity
+  type-aliases-package: com.beyond.beatbuddy.*.entity, com.beyond.beatbuddy.global.entity
   mapper-locations: classpath:mapper/**/*.xml
   configuration:
     jdbc-type-for-null: NULL
