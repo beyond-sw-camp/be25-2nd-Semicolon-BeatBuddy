@@ -13,12 +13,13 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: beyond
   servlet:
     multipart:
       max-file-size: 5MB        # 프로필 사진 업로드용
       max-request-size: 5MB
   mail:
+    default-encoding: UTF-8
     host: smtp.gmail.com
     port: 587
     username: ${MAIL_USERNAME}
@@ -44,8 +45,7 @@ jwt:
 springdoc:
   swagger-ui:
     operations-sorter: method
-  paths-to-match:
-    - /api/**
+  paths-to-match: [ /api/v1/** ]
 
 file:
   upload:
