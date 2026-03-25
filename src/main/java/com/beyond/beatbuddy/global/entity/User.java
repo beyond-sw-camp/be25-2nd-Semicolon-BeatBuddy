@@ -1,55 +1,34 @@
 package com.beyond.beatbuddy.global.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import lombok.*;
+import java.time.LocalDateTime;
 
-import java.io.Serial;
-import java.util.Collection;
-import java.util.List;
-
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User implements UserDetails {
-	@Serial
-	private static final long serialVersionUID = 804969665237844542L;
+@Builder
+public class User {
+	private Long userId;
+	private String email;
+	private String password;
+	private String kakaoId;
+	private String provider;        // LOCAL, KAKAO
 
+	private String nickname;
+	private String gender;          // MALE, FEMALE
+	private Integer birthYear;
+	private String profileImageUrl;
 
-	@Override
-	public String getUsername() {
-		return "";
-	}
+	private Boolean isTutorialViewed;
+	private Boolean isTasteAnalyzed;
 
-	@Override
-	public String getPassword() {
-		return "";
-	}
+	private String status;          // ACTIVE, DELETED
+	private LocalDateTime banUntil;
+	private String banReason;
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of();
-	}
+	private Boolean allowPushChat;
+	private Boolean allowPushSocial;
 
-	@Override
-	public boolean isEnabled() {
-		return UserDetails.super.isEnabled();
-	}
-
-	@Override
-	public boolean isCredentialsNonExpired() {
-		return UserDetails.super.isCredentialsNonExpired();
-	}
-
-	@Override
-	public boolean isAccountNonLocked() {
-		return UserDetails.super.isAccountNonLocked();
-	}
-
-	@Override
-	public boolean isAccountNonExpired() {
-		return UserDetails.super.isAccountNonExpired();
-	}
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 }
