@@ -1,0 +1,55 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: beatbuddy
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/beatbuddy
+    username: beyond
+    password: beyond
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: ${REDIS_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 5MB        # 프로필 사진 업로드용
+      max-request-size: 5MB
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+  config:
+    import: application-secret.yml
+
+mybatis:
+  type-aliases-package: com.beyond.beatbuddy.*.entity
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    jdbc-type-for-null: NULL
+    map-underscore-to-camel-case: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: 900000        # 15분 (ms)
+  refresh-expiration: 604800000    # 7일 (ms)
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method
+  paths-to-match:
+    - /api/**
+
+file:
+  upload:
+    profile: ./uploads/profiles   # 개인 프로필
+    group: ./uploads/groups       # 그룹 사진
+  default-profile: /images/default-profile.png
+  default-group: /images/default-group.png
