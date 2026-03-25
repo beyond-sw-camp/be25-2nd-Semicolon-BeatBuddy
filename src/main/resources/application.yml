@@ -51,5 +51,5 @@ file:
   upload:
     profile: ./uploads/profiles   # 개인 프로필
     group: ./uploads/groups       # 그룹 사진
-  default-profile: /images/default-profile.png
-  default-group: /images/default-group.png
+  default-profile: /default-profile.png
+  default-group: /default-group.png
