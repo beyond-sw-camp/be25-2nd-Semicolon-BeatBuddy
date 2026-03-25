@@ -18,8 +18,7 @@ public class AuthController {
 	@PostMapping(value = "/signup", consumes = "multipart/form-data")
 	public ResponseEntity<ApiResponse<Void>> signup(
 			@RequestPart("data") @Valid SignupRequest request,
-			@RequestPart(value = "profileImage", required = false) MultipartFile profileImage
-	) {
+			@RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 		authService.signup(request, profileImage);
 		return ResponseEntity.ok(ApiResponse.builder().build())
 	}
