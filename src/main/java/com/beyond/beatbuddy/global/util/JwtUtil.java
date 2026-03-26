@@ -1,70 +1,92 @@
 package com.beyond.beatbuddy.global.util;
 
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
 
-@Configuration
+@Component
 public class JwtUtil {
 	private final Key key;
+	private static final long accessExpiration = 1000L * 60L * 15L;             // 15분
+	private static final long refreshExpiration = 1000L * 60L * 60L * 24L * 7L; // 7일
 
-	// 현업에서는 이렇게 랜덤한 키 안 씀
-	// 서버 꺼지고 켜질때마다 랜덤하게 한번씩 만들어짐
-	private final long expiration = 1000L * 60 * 60; // 1시간
+	// 생성자에서 key 만들기
+	public JwtUtil(@Value("${jwt.secret}") String secret) {
+		this.key = Keys.hmacShaKeyFor(secret.getBytes());
+	}
 
-	public String generateToken(String username) {
+	// Access Token 생성
+	public String generateAccessToken(Long userId, String email, String nickname) {
 		return Jwts.builder()
-				.setSubject(username) // 토큰 안에 username 저장
-				.setIssuedAt(new Date()) // 발급 시간 (지금)
-				.setExpiration(new Date(System.currentTimeMillis()+expiration)) // 만료 시간
-				.signWith(key) // 비밀키로 서명
-				.compact(); // 문자열로 변환해서 반환
+				.setSubject(String.valueOf(userId))
+				.claim("email", email)
+				.claim("nickname", nickname)
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
+				.signWith(key, SignatureAlgorithm.HS256)
+				.compact();
 	}
 
-	public String generateAccessToken(String username) {
-		long expiration_30m = 1000L * 60 * 30;
+	// Refresh Token 생성
+	public String generateRefreshToken(Long userId) {
 		return Jwts.builder()
-				.setSubject(username) // 토큰 안에 username 저장
-				.setIssuedAt(new Date()) // 발급 시간 (지금)
-				.setExpiration(new Date(System.currentTimeMillis() + expiration_30m)) // 만료 시간
-				.signWith(key) // 비밀키로 서명
-				.compact(); // 문자열로 변환해서 반환
+				.setSubject(String.valueOf(userId))
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
+				.signWith(key, SignatureAlgorithm.HS256)
+				.compact();
 	}
 
-	public String generateRefreshToken(String username) {
-		long expiration_7d = 1000L * 60 * 60 * 24 * 7;
-		return Jwts.builder()
-				.setSubject(username) // 토큰 안에 username 저장
-				.setIssuedAt(new Date()) // 발급 시간 (지금)
-				.setExpiration(new Date(System.currentTimeMillis() + expiration_7d)) // 만료 시간
-				.signWith(key) // 비밀키로 서명
-				.compact(); // 문자열로 변환해서 반환
+	// "Bearer " 제거
+	public String substringToken(String bearerToken) {
+		if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+			return bearerToken.substring(7);
+		}
+		throw new IllegalArgumentException("토큰 형식이 올바르지 않습니다.");
 	}
 
-	public String getUsernameFromToken(String token) {
-		return Jwts.parserBuilder()
-				.setSigningKey(key) // 비밀키로 검증 준비
-				.build()
-				.parseClaimsJws(token) // 토큰 파싱
-				.getBody() // 토큰 안의 데이터 꺼내기
-				.getSubject(); // username 꺼내기
-	}
-
-	public boolean validateToken(String token) {
+	// 토큰 검증
+	public void validateToken(String token) {
 		try {
-			Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-			return true;
+			extractClaims(token);
+		} catch (ExpiredJwtException e) {
+			throw new IllegalArgumentException("만료된 토큰입니다.");
+		} catch (JwtException e) {
+			throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
 		}
-		catch (JwtException | IllegalArgumentException e) {
-			// 전자: 만료, 위조, 서명 불일치
-			// 후자: 토큰이 null이거나 빈 문자열("")
-			return false;
-		}
+	}
+
+	// Claims 추출
+	public Claims extractClaims(String token) {
+		return Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+	}
+
+	// userId 추출
+	public Long getUserId(String token) {
+		return Long.valueOf(extractClaims(token).getSubject());
+	}
+
+	// email 추출
+	public String getEmail(String token) {
+		return extractClaims(token).get("email", String.class);
+	}
+
+	// nickname 추출
+	public String getNickname(String token) {
+		return extractClaims(token).get("nickname", String.class);
+	}
+
+	// 만료시간 추출 (블랙리스트 TTL용)
+	public long getExpiration(String token) {
+		Date expiration = extractClaims(token).getExpiration();
+		return expiration.getTime() - System.currentTimeMillis();
 	}
 }

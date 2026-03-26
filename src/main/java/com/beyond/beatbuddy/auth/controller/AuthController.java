@@ -1,4 +1,5 @@
 package com.beyond.beatbuddy.auth.controller;
+import com.beyond.beatbuddy.auth.dto.request.SignupRequest;
 import com.beyond.beatbuddy.auth.service.AuthService;
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 
