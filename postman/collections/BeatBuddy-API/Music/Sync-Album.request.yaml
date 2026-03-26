@@ -1,0 +1,9 @@
+$kind: http-request
+name: Sync Album
+method: POST
+url: '{{baseUrl}}/api/music/sync/album/{{albumId}}'
+order: 2000
+pathVariables:
+  - key: albumId
+    value: 4aawyAB9vmqN3uQ7FjRGTy
+    description: Spotify 앨범 ID

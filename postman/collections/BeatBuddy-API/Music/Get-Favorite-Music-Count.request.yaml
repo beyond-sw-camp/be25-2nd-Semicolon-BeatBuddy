@@ -1,0 +1,10 @@
+$kind: http-request
+name: Get Favorite Music Count
+method: GET
+url: '{{baseUrl}}/api/music/fav/count'
+order: 7000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'

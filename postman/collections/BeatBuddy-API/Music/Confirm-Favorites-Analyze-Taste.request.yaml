@@ -1,0 +1,10 @@
+$kind: http-request
+name: 'Confirm Favorites & Analyze Taste'
+method: POST
+url: '{{baseUrl}}/api/music/fav/confirm'
+order: 8000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'

@@ -1,0 +1,8 @@
+$kind: http-request
+name: Reissue Token
+method: POST
+url: '{{baseUrl}}/api/auth/reissue'
+order: 4000
+headers:
+  - key: Refresh-Token
+    value: '{{refreshToken}}'

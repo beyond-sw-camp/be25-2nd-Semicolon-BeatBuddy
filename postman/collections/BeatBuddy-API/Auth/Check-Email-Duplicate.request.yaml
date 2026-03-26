@@ -1,0 +1,9 @@
+$kind: http-request
+name: Check Email Duplicate
+method: GET
+url: '{{baseUrl}}/api/auth/check-email'
+order: 1000
+queryParams:
+  - key: email
+    value: test@example.com
+    description: 확인할 이메일 주소
