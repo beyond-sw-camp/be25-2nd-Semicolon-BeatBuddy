@@ -21,7 +21,7 @@ public class AuthService {
 
 		// 1. 이메일 중복 확인
 		if (userMapper.existsByEmail(request.getEmail())) {
-			throw new ConflictException("이미 사용 중인 이메일입니다.");
+			throw new RuntimeException("이미 사용 중인 이메일입니다.");
 		}
 
 		// 2. 프로필 사진 저장 (없으면 기본 이미지)
@@ -41,8 +41,9 @@ public class AuthService {
 				.provider("LOCAL")
 				.status("ACTIVE")
 				.build();
-
 		userMapper.save(user);
+
+		user = userMapper.findByEmail(request.getEmail());
 	}
 
 }

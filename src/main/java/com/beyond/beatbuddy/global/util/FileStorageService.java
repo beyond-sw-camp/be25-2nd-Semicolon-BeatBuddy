@@ -16,6 +16,7 @@ public class FileStorageService {
 		application.yml에 있는 값을 자바 코드에서 꺼내 쓰는 거
 		profileUploadDir = "./uploads/profiles"
 		groupUploadDir = "./uploads/groups"
+		default-profile이랑 default-group 사진 필요함
 	*/
 	@Value("${file.upload.profile}")
 	private String profileUploadDir;
