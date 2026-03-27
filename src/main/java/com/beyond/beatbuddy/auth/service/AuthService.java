@@ -1,9 +1,12 @@
 package com.beyond.beatbuddy.auth.service;
 
 import com.beyond.beatbuddy.auth.dto.request.SignupRequest;
+import com.beyond.beatbuddy.auth.dto.response.LoginResponse;
 import com.beyond.beatbuddy.auth.mapper.UserMapper;
 import com.beyond.beatbuddy.global.entity.User;
 import com.beyond.beatbuddy.global.util.FileStorageService;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,4 +49,11 @@ public class AuthService {
 		user = userMapper.findByEmail(request.getEmail());
 	}
 
+	// 로그인
+	public LoginResponse login(
+			String email,
+			String password) {
+		LoginResponse loginResponse = new LoginResponse();
+		return loginResponse;
+	}
 }

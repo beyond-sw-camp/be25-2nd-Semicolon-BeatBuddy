@@ -1,16 +1,16 @@
 package com.beyond.beatbuddy.auth.controller;
+import com.beyond.beatbuddy.auth.dto.request.LoginRequest;
 import com.beyond.beatbuddy.auth.dto.request.SignupRequest;
+import com.beyond.beatbuddy.auth.dto.response.LoginResponse;
 import com.beyond.beatbuddy.auth.service.AuthService;
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -28,4 +28,23 @@ public class AuthController {
 		authService.signUp(request, profileImage);
 		return ResponseEntity.ok(ApiResponse.builder().build());
 	}
+
+	// 로그인/api/v1/auth/login
+	@PostMapping(value = "/login")
+	public ResponseEntity<ApiResponse<Void>> login(@Valid @RequestBody LoginRequest request) {
+		LoginResponse loginResponse = authService.login(request.getEmail(), request.getPassword());
+		return ResponseEntity.ok()
+						.headers()
+			ApiResponse.builder().build());
+	}
+
+
+
+	// 로그아웃
+
+
+	// refresh
+
+
+	//
 }
