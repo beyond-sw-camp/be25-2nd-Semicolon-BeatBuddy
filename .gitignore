@@ -1,7 +1,7 @@
 ### Spring Boot ###
 HELP.md
 target/
-.mvn/wrapper/maven-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -72,6 +72,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### 개인 프로필 사진 및 그룹 사진 ##
+uploads/
+
 ### Java ###
 *.class
 *.log
@@ -124,3 +127,5 @@ $RECYCLE.BIN/
 
 ### env 파일 ###
 .env
+## 비밀번호 포함 파일 - 카톡으로 공유 예정 ##
+application-secret.yml
