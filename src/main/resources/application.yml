@@ -11,9 +11,10 @@ spring:
     password: beyond
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
+      host: localhost
+      username: default
       password: beyond
+      port: 6379
   servlet:
     multipart:
       max-file-size: 5MB        # 프로필 사진 업로드용
@@ -22,8 +23,8 @@ spring:
     default-encoding: UTF-8
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${spring.mail.username}
+    password: ${spring.mail.password}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
@@ -38,7 +39,7 @@ mybatis:
     map-underscore-to-camel-case: true
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${jwt.secret}
 
 springdoc:
   swagger-ui:
@@ -51,3 +52,8 @@ file:
     group: ./uploads/groups       # 그룹 사진
   default-profile: /default-profile.jpg
   default-group: /default-group.png
+
+spotify:
+  client-id: ${spotify.client-id}
+  client-secret: ${spotify.client-secret}
+
