@@ -33,9 +33,10 @@ public class GroupController {
     @Operation(summary = "그룹명 중복 확인")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "중복 확인 완료"),
-            @ApiResponse(responseCode = "400", description = "유효성 검사 실패")
+            @ApiResponse(responseCode = "400", description = "groupName 파라미터 누락 또는 20자 초과"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
-    @GetMapping("/check-name")
+    @GetMapping("/name-check")
     public ResponseEntity<CommonResponse<Boolean>> checkGroupName(
             @RequestParam
             @NotBlank(message = "그룹명은 필수입니다.")
@@ -49,7 +50,9 @@ public class GroupController {
     @Operation(summary = "그룹 생성")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "그룹 생성 성공"),
-            @ApiResponse(responseCode = "400", description = "중복된 그룹명 또는 초대코드")
+            @ApiResponse(responseCode = "400", description = "필수 파라미터 누락, 길이 초과 등 유효성 오류"),
+            @ApiResponse(responseCode = "409", description = "이미 사용 중인 그룹명 또는 초대 코드"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @PostMapping
     public ResponseEntity<CommonResponse<Long>> createGroup(@Valid @RequestBody GroupCreateRequest request) {

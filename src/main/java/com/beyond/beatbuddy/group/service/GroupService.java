@@ -1,6 +1,7 @@
 package com.beyond.beatbuddy.group.service;
 
 import com.beyond.beatbuddy.global.exception.BadRequestException;
+import com.beyond.beatbuddy.global.exception.ConflictException;
 import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
 import com.beyond.beatbuddy.group.entity.Group;
 import com.beyond.beatbuddy.group.entity.GroupMember;
@@ -27,14 +28,14 @@ public class GroupService {
 
         if (groupRepository.existsByGroupName(request.getGroupName())) {
 
-            throw new BadRequestException("이미 존재하는 그룹명입니다.");
+            throw new ConflictException("이미 존재하는 그룹명입니다.");
         }
 
         String inviteCode = request.getInviteCode().toUpperCase();
 
         if (groupRepository.existsByInviteCode(inviteCode)) {
 
-            throw new BadRequestException("이미 사용 중인 초대 코드입니다.");
+            throw new ConflictException("이미 사용 중인 초대 코드입니다.");
         }
 
         Group group = Group.builder()
