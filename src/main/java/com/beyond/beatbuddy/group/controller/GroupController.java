@@ -32,7 +32,7 @@ public class GroupController {
 
     @Operation(summary = "그룹명 중복 확인")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "중복 확인 완료"),
+            @ApiResponse(responseCode = "200", description = "중복 여부 확인 성공"),
             @ApiResponse(responseCode = "400", description = "groupName 파라미터 누락 또는 20자 초과"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
@@ -44,7 +44,23 @@ public class GroupController {
         boolean isDuplicate = groupService.checkGroupNameDuplicate(groupName);
 
         return ResponseEntity.ok(
-                CommonResponse.success(200, "그룹명 중복 확인 완료", isDuplicate));
+                CommonResponse.success(200, "중복 여부 확인 성공", isDuplicate));
+    }
+
+    @Operation(summary = "초대코드 중복 확인")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "중복 여부 확인 성공"),
+            @ApiResponse(responseCode = "400", description = "inviteCode 파라미터 누락 또는 형식 오류"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/invite-code-check")
+    public ResponseEntity<CommonResponse<Boolean>> checkInviteCode(
+            @RequestParam
+            @NotBlank(message = "초대코드는 필수입니다.") String inviteCode) {
+        boolean isDuplicate = groupService.checkInviteCodeDuplicate(inviteCode);
+
+        return ResponseEntity.ok(
+                CommonResponse.success(200, "중복 여부 확인 성공", isDuplicate));
     }
 
     @Operation(summary = "그룹 생성")

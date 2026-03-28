@@ -23,6 +23,12 @@ public class GroupService {
         return groupRepository.existsByGroupName(groupName);
     }
 
+    @Transactional(readOnly = true)
+    public boolean checkInviteCodeDuplicate(String inviteCode) {
+
+        return groupRepository.existsByInviteCode(inviteCode);
+    }
+
     @Transactional
     public Long createGroup(GroupCreateRequest request, Long creatorId) {
 
