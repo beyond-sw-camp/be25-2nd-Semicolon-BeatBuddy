@@ -1,8 +1,8 @@
-package com.beyond.beatbuddy.group.service;
+package com.beyond.beatbuddy.recommendation.service;
 
-import com.beyond.beatbuddy.group.dto.RecommendationResponseDto;
+import com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto;
 import com.beyond.beatbuddy.friend.entity.ViewedProfile;
-import com.beyond.beatbuddy.group.mapper.RecommendationMapper;
+import com.beyond.beatbuddy.recommendation.mapper.RecommendationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

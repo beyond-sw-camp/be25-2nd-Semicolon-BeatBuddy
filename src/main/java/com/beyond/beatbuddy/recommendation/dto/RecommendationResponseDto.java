@@ -1,4 +1,4 @@
-package com.beyond.beatbuddy.group.dto;
+package com.beyond.beatbuddy.recommendation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.beyond.beatbuddy.group.mapper.RecommendationMapper">
+<mapper namespace="com.beyond.beatbuddy.recommendation.mapper.RecommendationMapper">
 
     <!-- 스킵(열람) 이력 저장 -->
     <insert id="insertViewedProfile">
@@ -19,7 +19,7 @@
         5. user_profiles(taste_vector)가 있는 사람만 (취향 분석 완료자)
         6. VEC_DISTANCE로 유사도 순 정렬 (낮을수록 취향이 비슷함)
     -->
-    <select id="findRecommendations" resultType="com.beyond.beatbuddy.friend.dto.RecommendationResponseDto">
+    <select id="findRecommendations" resultType="com.beyond.beatbuddy.group.dto.RecommendationResponseDto">
         SELECT
             u.user_id           AS userId,
             u.nickname,

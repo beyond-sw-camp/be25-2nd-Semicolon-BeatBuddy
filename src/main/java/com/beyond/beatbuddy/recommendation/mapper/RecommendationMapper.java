@@ -1,6 +1,6 @@
-package com.beyond.beatbuddy.group.mapper;
+package com.beyond.beatbuddy.recommendation.mapper;
 
-import com.beyond.beatbuddy.group.dto.RecommendationResponseDto;
+import com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto;
 import com.beyond.beatbuddy.friend.entity.ViewedProfile;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

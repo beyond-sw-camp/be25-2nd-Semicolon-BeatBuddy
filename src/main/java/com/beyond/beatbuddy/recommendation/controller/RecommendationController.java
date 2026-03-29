@@ -1,7 +1,7 @@
-package com.beyond.beatbuddy.group.controller;
+package com.beyond.beatbuddy.recommendation.controller;
 
-import com.beyond.beatbuddy.group.dto.RecommendationResponseDto;
-import com.beyond.beatbuddy.group.service.RecommendationService;
+import com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto;
+import com.beyond.beatbuddy.recommendation.service.RecommendationService;
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "그룹 - 친구 추천", description = "그룹 내 취향 기반 친구 추천 API")
+@Tag(name = "친구 추천", description = "그룹 내 취향 기반 친구 추천 API")
 @RestController
 @RequestMapping("/api/v1/groups")
 @RequiredArgsConstructor
