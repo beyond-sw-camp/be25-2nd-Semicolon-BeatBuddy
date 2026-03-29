@@ -1,5 +1,7 @@
 package com.beyond.beatbuddy.global.config;
 
+import com.beyond.beatbuddy.global.security.CustomAccessDeniedHandler;
+import com.beyond.beatbuddy.global.security.CustomAuthenticationEntryPoint;
 import com.beyond.beatbuddy.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,23 +23,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // 인증 없이 접근 가능한 엔드포인트
-                .requestMatchers(
-                    "/api/auth/**",         // 회원가입, 로그인, 이메일 인증
-                    "/api/music/search",    // 음악 검색은 비로그인도 허용 (선택)
-                    "/ws/**"               // WebSocket
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // 인증 없이 접근 가능한 엔드포인트
+                        .requestMatchers(
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/api/auth/**", // 회원가입, 로그인, 이메일 인증
+                                "/api/music/search", // 음악 검색은 비로그인도 허용 (선택)
+                                "/ws/**" // WebSocket
+                        ).permitAll()
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint) // 401
+                        .accessDeniedHandler(accessDeniedHandler)) // 403
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

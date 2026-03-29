@@ -5,11 +5,11 @@ spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
 
-  mybatis:
-    mapper-locations: classpath:mapper/**/*.xml
-    type-aliases-package: com.beyond.beatbuddy
-    configuration:
-      map-underscore-to-camel-case: true
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.beyond.beatbuddy
+  configuration:
+    map-underscore-to-camel-case: true
 
 spotify:
   client-id: ${SPOTIFY_CLIENT_ID}

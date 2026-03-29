@@ -1,0 +1,20 @@
+package com.beyond.beatbuddy.group.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RecommendationResponseDto {
+    private Long userId;
+    private String nickname;
+    private String profileImageUrl;
+    private String gender;
+    private Integer birthYear;
+    // 취향 유사도 점수 (낮을수록 유사: VEC_DISTANCE 결과값)
+    private Double similarityScore;
+}

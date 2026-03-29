@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beyond.beatbuddy.notification.mapper.NotificationMapper">
+
+    <!-- 알림 단건 조회 -->
+    <select id="findById" resultType="com.beyond.beatbuddy.notification.entity.Notification">
+        SELECT notification_id, user_id, content, type, is_read, created_at
+        FROM notifications
+        WHERE notification_id = #{notificationId}
+    </select>
+
+    <!-- 읽음 처리 -->
+    <update id="markAsRead">
+        UPDATE notifications
+        SET is_read = TRUE
+        WHERE notification_id = #{notificationId}
+    </update>
+
+</mapper>
