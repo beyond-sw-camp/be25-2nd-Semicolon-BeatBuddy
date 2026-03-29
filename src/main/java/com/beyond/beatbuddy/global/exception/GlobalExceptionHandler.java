@@ -31,6 +31,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(CommonResponse.error(400, e.getMessage()));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<CommonResponse<Void>> handleNotFound(NotFoundException e) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(CommonResponse.error(404, e.getMessage()));
+    }
+
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<CommonResponse<Void>> handleConflict(ConflictException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
