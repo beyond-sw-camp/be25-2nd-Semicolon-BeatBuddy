@@ -2,7 +2,9 @@ package com.beyond.beatbuddy.group.service;
 
 import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.global.exception.ConflictException;
+import com.beyond.beatbuddy.global.exception.NotFoundException;
 import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
+import com.beyond.beatbuddy.group.dto.GroupResponse;
 import com.beyond.beatbuddy.group.entity.Group;
 import com.beyond.beatbuddy.group.entity.GroupMember;
 import com.beyond.beatbuddy.group.repository.GroupMemberRepository;
@@ -65,5 +67,19 @@ public class GroupService {
         groupMemberRepository.save(firstMember);
 
         return savedGroup.getGroupId();
+    }
+
+    @Transactional(readOnly = true)
+    public GroupResponse getGroupByInviteCode(String inviteCode) {
+        Group group = groupRepository.findByInviteCode(inviteCode)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 초대코드입니다."));
+
+        return GroupResponse.builder()
+                .groupId(group.getGroupId())
+                .groupName(group.getGroupName())
+                .description(group.getDescription())
+                .groupImageUrl(group.getGroupImageUrl())
+                .memberCount(group.getMemberCount())
+                .build();
     }
 }

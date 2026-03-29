@@ -2,6 +2,7 @@ package com.beyond.beatbuddy.group.controller;
 
 import com.beyond.beatbuddy.global.dto.CommonResponse;
 import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
+import com.beyond.beatbuddy.group.dto.GroupResponse;
 import com.beyond.beatbuddy.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -81,5 +83,18 @@ public class GroupController {
         return ResponseEntity
                 .created(location)
                 .body(CommonResponse.success(HttpStatus.CREATED.value(), "그룹이 생성되었습니다.", groupId));
+    }
+
+    @Operation(summary = "초대코드로 그룹 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "그룹 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 초대코드"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/invite/{inviteCode}")
+    public ResponseEntity<CommonResponse<GroupResponse>> getGroupByInviteCode(@PathVariable String inviteCode) {
+        GroupResponse response = groupService.getGroupByInviteCode(inviteCode);
+
+        return ResponseEntity.ok(CommonResponse.success(200, "그룹 조회 성공", response));
     }
 }
