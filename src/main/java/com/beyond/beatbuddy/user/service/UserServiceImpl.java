@@ -1,5 +1,7 @@
 package com.beyond.beatbuddy.user.service;
 
+import com.beyond.beatbuddy.global.exception.CustomException;
+import com.beyond.beatbuddy.global.exception.ErrorCode;
 import com.beyond.beatbuddy.user.dto.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.entity.User;
 import com.beyond.beatbuddy.user.mapper.UserMapper;
@@ -15,7 +17,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileResponseDto getMyProfile(String email) {
         User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return new UserProfileResponseDto(user);
     }
 }
