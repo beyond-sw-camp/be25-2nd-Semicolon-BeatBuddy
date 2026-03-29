@@ -6,5 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class EmailVerifyResponse {
-
+	private boolean verified;
+	private int attempts;
+	private int maxAttempts;
 }

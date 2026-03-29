@@ -19,4 +19,6 @@ public interface UserMapper {
 
 	// 회원 탈퇴 (soft delete)
 	void updateStatusDeleted(Long userId);
+
+	User findByUserId(Long userId);
 }

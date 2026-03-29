@@ -1,5 +1,11 @@
 package com.beyond.beatbuddy.global.config;
 
+import com.beyond.beatbuddy.global.security.JwtAccessDeniedHandler;
+import com.beyond.beatbuddy.global.security.JwtAuthenticationEntryPoint;
+import com.beyond.beatbuddy.global.security.JwtAuthenticationFilter;
+import com.beyond.beatbuddy.global.util.JwtUtil;
+import com.beyond.beatbuddy.global.util.RedisService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,7 +24,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+	private final JwtUtil jwtUtil;
+	private final RedisService redisService;
+	private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+	private final JwtAccessDeniedHandler accessDeniedHandler;
+
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity /*,
 												   JwtTokenProvider jwtTokenProvider */) throws Exception {
@@ -37,8 +49,10 @@ public class SecurityConfig {
 				)
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(
-								"/api/v1/auth/**",
-								"/images/**",
+								"/api/v1/auth/signup",
+								"/api/v1/auth/login",
+								"/api/v1/auth/email/**",
+								"/api/v1/auth/token/refresh",
 								"/default-profile.png",
 								"/default-group.png",
 								"/swagger-ui/**",
@@ -46,13 +60,15 @@ public class SecurityConfig {
 						).permitAll()
 						// 나머지는 인증 필요
 						.anyRequest().authenticated()
-				);
-				// JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 앞에 추가하는 설정
-				// JwtAuthenticationFilter에서 인증이 정상적으로 처리되면 UsernamePasswordAuthenticationFilter는 자동으로 통과한다.
-//				.addFilterBefore(
-//						new JwtAuthenticationFilter(jwtTokenProvider),
-//						UsernamePasswordAuthenticationFilter.class
-//				);
+				)
+				.exceptionHandling(exception -> exception
+						.authenticationEntryPoint(authenticationEntryPoint)
+						.accessDeniedHandler(accessDeniedHandler)
+				)
+				.addFilterBefore(
+				new JwtAuthenticationFilter(jwtUtil, redisService),
+				UsernamePasswordAuthenticationFilter.class
+		);
 
 		return httpSecurity.build();
 	}

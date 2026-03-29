@@ -46,6 +46,12 @@
           AND status = 'ACTIVE'
     </select>
 
+    <select id="findByUserId" resultMap="UserResultMap">
+        SELECT * FROM users
+        WHERE user_id = #{userId}
+          AND status = 'ACTIVE'
+    </select>
+
     <update id="updatePassword">
         UPDATE users
         SET password = #{password}
