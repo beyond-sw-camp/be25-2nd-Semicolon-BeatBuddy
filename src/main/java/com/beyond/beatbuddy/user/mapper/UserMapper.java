@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 public interface UserMapper {
     Optional<User> selectUserByEmail(@Param("email") String email);
 
-    void updatePassword(@Param("userId") Long userId, @Param("newPassword") String
-            newPassword);
+    void updatePassword(@Param("userId") Long userId, @Param("newPassword") String newPassword);
+
+    void withdrawUser(@Param("userId") Long userId);
 }

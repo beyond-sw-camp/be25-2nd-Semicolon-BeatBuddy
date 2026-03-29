@@ -7,4 +7,6 @@ public interface UserService {
     UserProfileResponseDto getMyProfile(String email);
 
     void changePassword(String email, ChangePasswordRequestDto request);
+
+    void withdraw(String email);
 }

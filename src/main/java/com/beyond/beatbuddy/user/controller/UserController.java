@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +25,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public UserProfileResponseDto getMyProfile(@AuthenticationPrincipal UserDetails
-                                                       userDetails) {
+    public UserProfileResponseDto getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         return userService.getMyProfile(userDetails.getUsername());
     }
 
@@ -35,5 +35,12 @@ public class UserController {
             @Valid @RequestBody ChangePasswordRequestDto request) {
         userService.changePassword(userDetails.getUsername(), request);
         return ApiResponse.of(HttpStatus.OK, "비밀번호가 변경되었습니다.", null);
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        userService.withdraw(userDetails.getUsername());
+        return ApiResponse.of(HttpStatus.OK, "회원탈퇴가 완료되었습니다.", null);
     }
 }

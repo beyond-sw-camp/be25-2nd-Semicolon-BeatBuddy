@@ -1,6 +1,5 @@
 package com.beyond.beatbuddy.user.service;
 
-
 import com.beyond.beatbuddy.global.exception.CustomException;
 import com.beyond.beatbuddy.global.exception.ErrorCode;
 import com.beyond.beatbuddy.user.dto.UserProfileResponseDto;
@@ -36,5 +35,13 @@ public class UserServiceImpl implements UserService {
 
         String encoded = passwordEncoder.encode(request.getNewPassword());
         userMapper.updatePassword(user.getUserId(), encoded);
+    }
+
+    @Override
+    public void withdraw(String email) {
+        User user = userMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        userMapper.withdrawUser(user.getUserId());
     }
 }
