@@ -82,4 +82,13 @@ public class GroupService {
                 .memberCount(group.getMemberCount())
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public boolean checkNicknameDuplicate(Long groupId, String nickname) {
+        if (!groupRepository.existsById(groupId)) {
+            throw new NotFoundException("존재하지 않는 그룹입니다.");
+        }
+
+        return groupMemberRepository.existsByGroupIdAndGroupNickname(groupId, nickname);
+    }
 }

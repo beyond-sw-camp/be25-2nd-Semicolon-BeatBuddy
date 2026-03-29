@@ -88,13 +88,36 @@ public class GroupController {
     @Operation(summary = "초대코드로 그룹 조회")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "그룹 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "초대코드 형식이 올바르지 않음"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 초대코드"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/invite/{inviteCode}")
-    public ResponseEntity<CommonResponse<GroupResponse>> getGroupByInviteCode(@PathVariable String inviteCode) {
+    public ResponseEntity<CommonResponse<GroupResponse>> getGroupByInviteCode(
+            @PathVariable
+            @NotBlank(message = "초대코드는 필수 입력값입니다.") String inviteCode) {
         GroupResponse response = groupService.getGroupByInviteCode(inviteCode);
 
         return ResponseEntity.ok(CommonResponse.success(200, "그룹 조회 성공", response));
+    }
+
+    @Operation(summary = "그룹 내 닉네임 중복 확인")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "중복 여부 확인 성공"),
+            @ApiResponse(responseCode = "400", description = "nickname 파라미터 누락 또는 20자 초과"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/{groupId}/nickname-check")
+    public ResponseEntity<CommonResponse<Boolean>> checkNickname(
+            @PathVariable Long groupId,
+            @RequestParam
+            @NotBlank(message = "닉네임은 필수입니다.")
+            @Size(max = 20, message = "닉네임은 최대 20자입니다.") String nickname) {
+
+        boolean isDuplicate = groupService.checkNicknameDuplicate(groupId, nickname);
+
+        return ResponseEntity.ok(
+                CommonResponse.success(200, "중복 여부 확인 성공", isDuplicate));
     }
 }
