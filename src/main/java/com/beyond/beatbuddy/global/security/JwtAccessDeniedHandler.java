@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+// Security가 자동으로 ex) 일반 유저가 /api/admin/** 접근 → Security가 자동으로 403
+// Role/URL 기반 접근 제한, 필터에서 터진 예외를 잡는거임
+// 토큰은 있는데 권한 없음 - 403 던져
 @Component
 @RequiredArgsConstructor
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
