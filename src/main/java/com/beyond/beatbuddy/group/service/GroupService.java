@@ -9,6 +9,7 @@ import com.beyond.beatbuddy.group.entity.GroupMember;
 import com.beyond.beatbuddy.group.repository.GroupMemberRepository;
 import com.beyond.beatbuddy.group.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,9 @@ public class GroupService {
         return groupRepository.existsByInviteCode(inviteCode.toUpperCase());
     }
 
+    @Value("${app.group.default-image-url}")
+    private String defaultGroupImageUrl;
+
     @Transactional
     public Long createGroup(GroupCreateRequest request, Long creatorId) {
 
@@ -44,11 +48,14 @@ public class GroupService {
             throw new ConflictException("이미 사용 중인 초대 코드입니다.");
         }
 
+        String groupImageUrl = request.getGroupImageUrl() != null
+                ? request.getGroupImageUrl() : defaultGroupImageUrl;
+
         Group group = Group.builder()
                 .groupName(request.getGroupName())
                 .description(request.getDescription())
                 .inviteCode(inviteCode)
-                .groupImageUrl(request.getGroupImageUrl())
+                .groupImageUrl(groupImageUrl)
                 .creatorId(creatorId)
                 .build();
 
