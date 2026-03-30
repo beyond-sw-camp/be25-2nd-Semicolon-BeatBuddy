@@ -1,8 +1,5 @@
 package com.beyond.beatbuddy.auth.controller;
-import com.beyond.beatbuddy.auth.dto.request.EmailSendRequest;
-import com.beyond.beatbuddy.auth.dto.request.EmailVerifyRequest;
-import com.beyond.beatbuddy.auth.dto.request.LoginRequest;
-import com.beyond.beatbuddy.auth.dto.request.SignupRequest;
+import com.beyond.beatbuddy.auth.dto.request.*;
 import com.beyond.beatbuddy.auth.dto.response.EmailSendResponse;
 import com.beyond.beatbuddy.auth.dto.response.EmailVerifyResponse;
 import com.beyond.beatbuddy.auth.dto.response.TokenResponse;
@@ -14,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -33,11 +31,13 @@ import java.util.Map;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Auth APIs", description = "인증 관련 API 목록")
 public class AuthController {
 	private final AuthService authService;
 
 	// 회원가입
 	@PostMapping(value = "/signup", consumes = "multipart/form-data")
+	@Operation(summary = "회원가입", description = "회원정보 및 사진을 multipart/form-data 형태로 보낸다.")
 	public ResponseEntity<?> signup(
 			@RequestPart("data") @Valid SignupRequest request,
 			@RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
@@ -75,6 +75,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
+	@Operation(summary = "로그인", description = "아이디와 패스워드를 JSON 문자열로 받아서 로그인해용")
 	public ResponseEntity<?> login(
 			@RequestBody @Valid LoginRequest request,
 			HttpServletResponse response) {
@@ -145,6 +146,24 @@ public class AuthController {
 				Map.of("registered", registered)
 		);
 	}
+
+	@PostMapping("/password/email/send")
+	public ResponseEntity<?> sendPasswordResetCode(
+			@RequestBody @Valid EmailSendRequest request) {
+		EmailSendResponse emailSendResponse = authService.sendPasswordResetCode(request.getEmail());
+		return ApiResponse.of(HttpStatus.OK, "인증코드를 발송했습니다.", emailSendResponse);
+	}
+
+	// 비밀번호 재설정
+	@PostMapping("/password/reset")
+	public ResponseEntity<?> resetPassword(
+			@RequestBody @Valid PasswordResetRequest request) {
+		authService.resetPassword(request.getEmail(), request.getNewPassword());
+		return ApiResponse.of(HttpStatus.OK, "비밀번호가 변경됐습니다.", null);
+	}
+
+
+
 
 	// 쿠키 생성 공통 메서드
 	private ResponseCookie createRefreshTokenCookie(String refreshToken) {

@@ -15,6 +15,9 @@ import com.beyond.beatbuddy.global.util.FileStorageService;
 import com.beyond.beatbuddy.global.util.JwtUtil;
 import com.beyond.beatbuddy.global.util.RedisService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,7 +36,6 @@ public class AuthService {
 	private final EmailService emailService;
 
 	public TokenResponse signUp(SignupRequest request, MultipartFile profileImage) {
-
 		// 1. 이메일 인증 확인
 		if (!redisService.isEmailVerified(request.getEmail())) {
 			throw new UnauthorizedException("이메일 인증이 필요합니다.");
@@ -191,7 +193,6 @@ public class AuthService {
 		redisService.deleteRefreshToken(userId);
 	}
 
-
 	public String refresh(String refreshToken) {
 		// 1. 토큰 유효성 검증
 		try {
@@ -221,5 +222,49 @@ public class AuthService {
 
 	public Boolean checkEmail(String email) {
 		return userMapper.existsByEmail(email);
+	}
+
+	public EmailSendResponse sendPasswordResetCode(String email) {
+		// 1. 이미 가입된 이메일인지 확인 - 기존의 sendVerificationCode와 반대
+		if (!userMapper.existsByEmail(email)) {
+			throw new NotFoundException("존재하지 않는 이메일입니다.");
+		}
+
+		// 2. 6자리 랜덤 코드 생성
+		String code = String.format("%06d", new Random().nextInt(1000000));
+
+		// 3. 기존 인증 데이터 초기화 (재발송 경우)
+		redisService.resetVerificationCode(email);
+
+		// 4. Redis에 코드 저장
+		redisService.saveVerificationCode(email, code);
+
+		// 5. 이메일 발송
+		emailService.sendVerificationEmail(email, code);
+
+		return EmailSendResponse.builder()
+				.attempts(0)
+				.maxAttempts(5)
+				.build();
+	}
+
+	public void resetPassword(String email, String newPassword) {
+		// 1. 이메일 인증 확인
+		if (!redisService.isEmailVerified(email)) {
+			throw new UnauthorizedException("이메일 인증이 필요합니다.");
+		}
+
+		// 2. 유저 조회
+		User user = userMapper.findByEmail(email);
+		if (user == null) {
+			throw new NotFoundException("존재하지 않는 이메일입니다.");
+		}
+
+		// 3. 비밀번호 암호화 후 업데이트
+		String encodedPassword = passwordEncoder.encode(newPassword);
+		userMapper.updatePassword(user.getUserId(), encodedPassword);
+
+		// 4. verified 삭제
+		redisService.deleteVerified(email);
 	}
 }
