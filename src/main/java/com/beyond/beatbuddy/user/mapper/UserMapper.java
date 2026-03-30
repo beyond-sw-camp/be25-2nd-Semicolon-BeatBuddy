@@ -11,5 +11,7 @@ public interface UserMapper {
 
     void updatePassword(@Param("userId") Long userId, @Param("newPassword") String newPassword);
 
+    void updateProfileImage(@Param("userId") Long userId, @Param("profileImageUrl") String profileImageUrl);
+
     void withdrawUser(@Param("userId") Long userId);
 }

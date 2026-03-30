@@ -1,9 +1,10 @@
-package com.beyond.beatbuddy.user.service;
+﻿package com.beyond.beatbuddy.user.service;
 
 import com.beyond.beatbuddy.global.exception.CustomException;
 import com.beyond.beatbuddy.global.exception.ErrorCode;
-import com.beyond.beatbuddy.user.dto.UserProfileResponseDto;
+import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
+import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequestDto;
 import com.beyond.beatbuddy.user.entity.User;
 import com.beyond.beatbuddy.user.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,15 @@ public class UserServiceImpl implements UserService {
 
         String encoded = passwordEncoder.encode(request.getNewPassword());
         userMapper.updatePassword(user.getUserId(), encoded);
+    }
+
+    @Override
+    public void updateProfileImage(String email, UpdateProfileImageRequestDto request) {
+        // Resolve the authenticated user first, then update only that user's profile image path.
+        User user = userMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        userMapper.updateProfileImage(user.getUserId(), request.getProfileImageUrl());
     }
 
     @Override

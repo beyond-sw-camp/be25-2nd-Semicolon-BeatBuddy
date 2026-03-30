@@ -1,4 +1,4 @@
-package com.beyond.beatbuddy.global.exception;
+﻿package com.beyond.beatbuddy.global.exception;
 
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -24,6 +24,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
+        // Fall back to a common 500 response so unexpected exceptions do not leak internal details.
         return ApiResponse.of(
                 ErrorCode.INTERNAL_SERVER_ERROR.getStatus(),
                 ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
@@ -31,3 +32,4 @@ public class GlobalExceptionHandler {
         );
     }
 }
+

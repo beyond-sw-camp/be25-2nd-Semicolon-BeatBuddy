@@ -1,4 +1,4 @@
-package com.beyond.beatbuddy.user.dto;
+package com.beyond.beatbuddy.user.dto.response;
 
 import com.beyond.beatbuddy.user.entity.User;
 import lombok.Getter;
