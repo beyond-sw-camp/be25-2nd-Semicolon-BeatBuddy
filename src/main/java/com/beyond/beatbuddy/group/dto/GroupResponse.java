@@ -9,7 +9,6 @@ public class GroupResponse {
     private Long groupId;
     private String groupName;
     private String description;
-    private String inviteCode;
     private Integer memberCount;
     private String groupImageUrl;
 }

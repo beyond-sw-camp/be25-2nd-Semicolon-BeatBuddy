@@ -37,7 +37,6 @@ public class Group {
     @Column(nullable = false)
     private Integer memberCount = 0;
 
-    @Column(nullable = false)
     private Long creatorId;
 
     @Column(length = 50)
