@@ -10,15 +10,18 @@ import com.beyond.beatbuddy.auth.service.AuthService;
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 
 import com.beyond.beatbuddy.global.exception.UnauthorizedException;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +32,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Validated
 public class AuthController {
 	private final AuthService authService;
 
@@ -122,6 +126,23 @@ public class AuthController {
 
 		return ApiResponse.of(HttpStatus.OK, "토큰 재발급 성공",
 				Map.of("accessToken", newAccessToken)
+		);
+	}
+
+	@GetMapping("/email/exists")
+	public ResponseEntity<?> checkEmail(
+			@RequestParam @Email(message = "이메일 형식이 올바르지 않습니다.")
+			@NotBlank(message = "이메일을 입력해주세요.") String email) {
+		Boolean registered = authService.checkEmail(email);
+		String message;
+		if (registered) {
+			message = "이미 가입된 이메일입니다";
+		}
+		else {
+			message = "미가입된 이메일입니다";
+		}
+		return ApiResponse.of(HttpStatus.OK, message,
+				Map.of("registered", registered)
 		);
 	}
 

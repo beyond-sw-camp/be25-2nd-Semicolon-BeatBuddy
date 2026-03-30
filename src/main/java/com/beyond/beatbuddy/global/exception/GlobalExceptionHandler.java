@@ -1,6 +1,7 @@
 package com.beyond.beatbuddy.global.exception;
 
 import com.beyond.beatbuddy.global.dto.ApiResponse;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -22,6 +23,16 @@ public class GlobalExceptionHandler {
 				.getFieldErrors()
 				.get(0)
 				.getDefaultMessage();
+		return ApiResponse.of(HttpStatus.BAD_REQUEST, message, null);
+	}
+
+	// @RequestParam 검증 실패
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
+		String message = e.getConstraintViolations()
+				.iterator()
+				.next()
+				.getMessage();
 		return ApiResponse.of(HttpStatus.BAD_REQUEST, message, null);
 	}
 

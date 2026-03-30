@@ -218,4 +218,8 @@ public class AuthService {
 		return jwtUtil.generateAccessToken(
 				user.getUserId(), user.getEmail(), user.getNickname());
 	}
+
+	public Boolean checkEmail(String email) {
+		return userMapper.existsByEmail(email);
+	}
 }
