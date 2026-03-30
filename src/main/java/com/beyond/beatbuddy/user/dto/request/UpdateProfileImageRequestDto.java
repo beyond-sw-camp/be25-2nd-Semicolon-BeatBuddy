@@ -1,4 +1,4 @@
-﻿package com.beyond.beatbuddy.user.dto.request;
+package com.beyond.beatbuddy.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

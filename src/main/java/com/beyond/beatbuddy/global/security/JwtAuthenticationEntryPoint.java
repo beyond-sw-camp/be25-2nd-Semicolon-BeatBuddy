@@ -1,4 +1,4 @@
-﻿package com.beyond.beatbuddy.global.security;
+package com.beyond.beatbuddy.global.security;
 
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 import com.beyond.beatbuddy.global.exception.ErrorCode;

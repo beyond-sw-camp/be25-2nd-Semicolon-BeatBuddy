@@ -1,4 +1,4 @@
-﻿package com.beyond.beatbuddy.global.exception;
+package com.beyond.beatbuddy.global.exception;
 
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 import org.springframework.http.HttpStatus;

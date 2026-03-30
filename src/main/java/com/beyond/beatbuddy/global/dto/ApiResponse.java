@@ -1,4 +1,4 @@
-﻿package com.beyond.beatbuddy.global.dto;
+package com.beyond.beatbuddy.global.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,7 +1,8 @@
-﻿package com.beyond.beatbuddy.user.service;
+package com.beyond.beatbuddy.user.service;
 
 import com.beyond.beatbuddy.global.exception.CustomException;
 import com.beyond.beatbuddy.global.exception.ErrorCode;
+import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponseDto;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
 import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequestDto;
@@ -23,6 +24,16 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectUserByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return new UserProfileResponseDto(user);
+    }
+
+    @Override
+    public UserGroupNicknameListResponseDto getMyGroupNicknames(String email) {
+        User user = userMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        return new UserGroupNicknameListResponseDto(
+                userMapper.selectMyGroupNicknames(user.getUserId())
+        );
     }
 
     @Override

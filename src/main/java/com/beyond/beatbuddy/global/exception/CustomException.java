@@ -1,4 +1,4 @@
-﻿package com.beyond.beatbuddy.global.exception;
+package com.beyond.beatbuddy.global.exception;
 
 import lombok.Getter;
 

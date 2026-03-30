@@ -1,6 +1,7 @@
-﻿package com.beyond.beatbuddy.user.controller;
+package com.beyond.beatbuddy.user.controller;
 
 import com.beyond.beatbuddy.global.dto.ApiResponse;
+import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponseDto;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
 import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequestDto;
@@ -28,6 +29,12 @@ public class UserController {
     @GetMapping("/me")
     public UserProfileResponseDto getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         return userService.getMyProfile(userDetails.getUsername());
+    }
+
+    @GetMapping("/me/group-nicknames")
+    public UserGroupNicknameListResponseDto getMyGroupNicknames(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return userService.getMyGroupNicknames(userDetails.getUsername());
     }
 
     @PatchMapping("/password")

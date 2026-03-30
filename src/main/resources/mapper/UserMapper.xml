@@ -14,12 +14,29 @@
         <result property="status" column="status"/>
     </resultMap>
 
+    <resultMap id="userGroupNicknameResultMap" type="com.beyond.beatbuddy.user.dto.response.UserGroupNicknameItemResponseDto">
+        <id property="groupId" column="group_id"/>
+        <result property="groupName" column="group_name"/>
+        <result property="groupImageUrl" column="group_image_url"/>
+        <result property="groupNickname" column="group_nickname"/>
+    </resultMap>
+
     <select id="selectUserByEmail" resultMap="userResultMap">
         SELECT user_id, email, password, nickname, gender,
                birth_year, profile_image_url, status
         FROM users
         WHERE email = #{email}
           AND status = 'ACTIVE'
+    </select>
+
+    <select id="selectMyGroupNicknames" resultMap="userGroupNicknameResultMap">
+        SELECT g.group_id,
+               g.group_name,
+               g.group_image_url,
+               gm.group_nickname
+        FROM group_members gm
+        JOIN user_groups g ON gm.group_id = g.group_id
+        WHERE gm.user_id = #{userId}
     </select>
 
     <update id="updatePassword">
