@@ -95,8 +95,8 @@ public class GroupController {
     @GetMapping("/invite/{inviteCode}")
     public ResponseEntity<CommonResponse<GroupResponse>> getGroupByInviteCode(
             @PathVariable
-            @NotBlank(message = "초대코드는 필수 입력값입니다.") String inviteCode) {
-        GroupResponse response = groupService.getGroupByInviteCode(inviteCode);
+            @NotBlank(message = "초대코드는 필수입니다.") String inviteCode) {
+        GroupResponse response = groupService.getGroupByInviteCode(inviteCode.toUpperCase());
 
         return ResponseEntity.ok(CommonResponse.success(200, "그룹 조회 성공", response));
     }
@@ -115,7 +115,7 @@ public class GroupController {
             @NotBlank(message = "닉네임은 필수입니다.")
             @Size(max = 20, message = "닉네임은 최대 20자입니다.") String nickname) {
 
-        boolean isDuplicate = groupService.checkNicknameDuplicate(groupId, nickname);
+        boolean isDuplicate = groupService.isNicknameDuplicate(groupId, nickname);
 
         return ResponseEntity.ok(
                 CommonResponse.success(200, "중복 여부 확인 성공", isDuplicate));

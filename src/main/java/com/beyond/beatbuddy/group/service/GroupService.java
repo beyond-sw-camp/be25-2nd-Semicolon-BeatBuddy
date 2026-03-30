@@ -1,6 +1,5 @@
 package com.beyond.beatbuddy.group.service;
 
-import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.global.exception.ConflictException;
 import com.beyond.beatbuddy.global.exception.NotFoundException;
 import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
@@ -25,10 +24,9 @@ public class GroupService {
         return groupRepository.existsByGroupName(groupName);
     }
 
-    @Transactional(readOnly = true)
     public boolean checkInviteCodeDuplicate(String inviteCode) {
 
-        return groupRepository.existsByInviteCode(inviteCode);
+        return groupRepository.existsByInviteCode(inviteCode.toUpperCase());
     }
 
     @Transactional
@@ -69,7 +67,6 @@ public class GroupService {
         return savedGroup.getGroupId();
     }
 
-    @Transactional(readOnly = true)
     public GroupResponse getGroupByInviteCode(String inviteCode) {
         Group group = groupRepository.findByInviteCode(inviteCode)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 초대코드입니다."));
@@ -83,9 +80,9 @@ public class GroupService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
-    public boolean checkNicknameDuplicate(Long groupId, String nickname) {
+    public boolean isNicknameDuplicate(Long groupId, String nickname) {
         if (!groupRepository.existsById(groupId)) {
+
             throw new NotFoundException("존재하지 않는 그룹입니다.");
         }
 
