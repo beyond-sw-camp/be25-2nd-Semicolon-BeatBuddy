@@ -98,6 +98,7 @@ public class AuthController {
 
 	// 로그아웃
 	@PostMapping("/logout")
+	@Operation(summary = "로그아웃", description = "refresh token 쿠키 삭제 및 access token 블랙리스트 등록")
 	public ResponseEntity<?> logout(
 			@RequestHeader("Authorization") String bearerToken,
 			HttpServletResponse response) {
