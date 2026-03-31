@@ -23,8 +23,6 @@ public class User {
 	private Boolean isTasteAnalyzed;
 
 	private String status;          // ACTIVE, DELETED
-	private LocalDateTime banUntil;
-	private String banReason;
 
 	private Boolean allowPushChat;
 	private Boolean allowPushSocial;
