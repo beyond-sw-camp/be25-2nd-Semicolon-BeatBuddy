@@ -1,8 +1,10 @@
 package com.beyond.beatbuddy.group.service;
 
+import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.global.exception.ConflictException;
 import com.beyond.beatbuddy.global.exception.NotFoundException;
 import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
+import com.beyond.beatbuddy.group.dto.GroupJoinRequest;
 import com.beyond.beatbuddy.group.dto.GroupResponse;
 import com.beyond.beatbuddy.group.entity.Group;
 import com.beyond.beatbuddy.group.entity.GroupMember;
@@ -94,5 +96,39 @@ public class GroupService {
         }
 
         return groupMemberRepository.existsByGroupIdAndGroupNickname(groupId, nickname);
+    }
+
+    @Transactional
+    public Long joinGroup(Long groupId, GroupJoinRequest request, Long userId) {
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다."));
+
+        if (!group.getInviteCode().equals(request.getInviteCode().toUpperCase())) {
+
+            throw new BadRequestException(("초대코드가 올바르지 않습니다."));
+        }
+
+        if (groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
+
+            throw new ConflictException("이미 가입한 그룹입니다.");
+        }
+
+        if (groupMemberRepository.existsByGroupIdAndGroupNickname(groupId, request.getGroupNickname())) {
+
+            throw new ConflictException("이미 사용 중인 닉네임입니다.");
+        }
+
+        GroupMember member = GroupMember.builder()
+                .groupId(groupId)
+                .userId(userId)
+                .groupNickname(request.getGroupNickname())
+                .build();
+
+        groupMemberRepository.save(member);
+
+        group.addMember();
+
+        return groupId;
     }
 }

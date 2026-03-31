@@ -2,6 +2,7 @@ package com.beyond.beatbuddy.group.controller;
 
 import com.beyond.beatbuddy.global.dto.CommonResponse;
 import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
+import com.beyond.beatbuddy.group.dto.GroupJoinRequest;
 import com.beyond.beatbuddy.group.dto.GroupResponse;
 import com.beyond.beatbuddy.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -98,7 +99,8 @@ public class GroupController {
             @NotBlank(message = "초대코드는 필수입니다.") String inviteCode) {
         GroupResponse response = groupService.getGroupByInviteCode(inviteCode.toUpperCase());
 
-        return ResponseEntity.ok(CommonResponse.success(200, "그룹 조회 성공", response));
+        return ResponseEntity.ok(
+                CommonResponse.success(200, "그룹 조회 성공", response));
     }
 
     @Operation(summary = "그룹 내 닉네임 중복 확인")
@@ -119,5 +121,26 @@ public class GroupController {
 
         return ResponseEntity.ok(
                 CommonResponse.success(200, "중복 여부 확인 성공", isDuplicate));
+    }
+
+    @Operation(summary = "그룹 가입")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "그룹 가입 성공"),
+            @ApiResponse(responseCode = "400", description = "초대코드 불일치"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹"),
+            @ApiResponse(responseCode = "409", description = "이미 가입한 그룹 또는 닉네임 중복"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @PostMapping("/{groupId}/members")
+    public ResponseEntity<CommonResponse<Long>> joinGroup (
+            @PathVariable Long groupId,
+            @Valid @RequestBody GroupJoinRequest request) {
+
+        Long userId = 1L;  // 로그인 사용자로 변경
+
+        Long joinedGroupId = groupService.joinGroup(groupId, request, userId);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonResponse.success(201, "그룹 가입이 완료되었습니다.", joinedGroupId));
     }
 }
