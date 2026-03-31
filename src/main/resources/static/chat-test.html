@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>BeatBuddy 채팅 테스트</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 18px;
+            letter-spacing: 4px;
+            color: #ff6b35;
+            text-transform: uppercase;
+        }
+        .panel {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 16px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .panel-title {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        input {
+            flex: 1;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            outline: none;
+        }
+        input:focus { border-color: #ff6b35; }
+        input::placeholder { color: #444; }
+        button {
+            background: #ff6b35;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            color: #0f0f0f;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.8; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        button.secondary {
+            background: #2a2a2a;
+            color: #e0e0e0;
+        }
+        #status {
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            color: #666;
+        }
+        #status.connected { border-color: #4caf50; color: #4caf50; }
+        #status.disconnected { border-color: #f44336; color: #f44336; }
+        #messages {
+            height: 250px;
+            overflow-y: auto;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        .msg { margin-bottom: 4px; }
+        .msg .time { color: #444; font-size: 11px; }
+        .msg .sender { color: #ff6b35; }
+        .msg .text { color: #e0e0e0; }
+        .msg.system { color: #666; font-style: italic; }
+        .msg.error { color: #f44336; }
+    </style>
+</head>
+<body>
+
+<h1>BeatBuddy Chat Test</h1>
+
+<!-- 연결 패널 -->
+<div class="panel">
+    <div class="panel-title">🔌 WebSocket 연결</div>
+    <div class="row">
+        <input id="serverUrl" type="text" value="http://localhost:8080/ws/chat" placeholder="서버 URL"/>
+        <button id="connectBtn" onclick="connect()">Connect</button>
+        <button id="disconnectBtn" class="secondary" onclick="disconnect()" disabled>Disconnect</button>
+    </div>
+    <div class="row">
+        <span id="status">● 연결 안됨</span>
+    </div>
+</div>
+
+<!-- 구독 패널 -->
+<div class="panel">
+    <div class="panel-title">📡 채팅방 구독</div>
+    <div class="row">
+        <input id="roomId" type="text" placeholder="roomId (예: 1)" />
+        <button id="subscribeBtn" onclick="subscribe()" disabled>Subscribe</button>
+    </div>
+</div>
+
+<!-- 메시지 전송 패널 -->
+<div class="panel">
+    <div class="panel-title">💬 메시지 전송</div>
+    <div class="row">
+        <input id="messageInput" type="text" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter') sendMessage()"/>
+        <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+    </div>
+</div>
+
+<!-- 메시지 로그 -->
+<div class="panel">
+    <div class="panel-title">📋 메시지 로그</div>
+    <div id="messages"></div>
+</div>
+
+<script>
+    let stompClient = null;
+    let subscription = null;
+
+    function connect() {
+        const url = document.getElementById('serverUrl').value;
+        const socket = new SockJS(url);
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null; // 디버그 로그 끄기
+
+        stompClient.connect({}, function(frame) {
+            setStatus(true);
+            log('system', '연결 성공!');
+            document.getElementById('connectBtn').disabled = true;
+            document.getElementById('disconnectBtn').disabled = false;
+            document.getElementById('subscribeBtn').disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+        }, function(error) {
+            setStatus(false);
+            log('error', '연결 실패: ' + error);
+        });
+    }
+
+    function disconnect() {
+        if (stompClient) {
+            stompClient.disconnect();
+            stompClient = null;
+        }
+        setStatus(false);
+        log('system', '연결 해제됨');
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('disconnectBtn').disabled = true;
+        document.getElementById('subscribeBtn').disabled = true;
+        document.getElementById('sendBtn').disabled = true;
+    }
+
+    function subscribe() {
+        const roomId = document.getElementById('roomId').value;
+        if (!roomId) { alert('roomId 입력해주세요!'); return; }
+
+        if (subscription) subscription.unsubscribe();
+
+        subscription = stompClient.subscribe('/sub/chat/rooms/' + roomId, function(message) {
+            const body = JSON.parse(message.body);
+            log('message', body);
+        });
+
+        log('system', roomId + '번 채팅방 구독 시작');
+    }
+
+    function sendMessage() {
+        const roomId = document.getElementById('roomId').value;
+        const text = document.getElementById('messageInput').value;
+        if (!roomId || !text) return;
+
+        stompClient.send('/pub/chat/message', {}, JSON.stringify({
+            roomId: parseInt(roomId),
+            messageText: text
+        }));
+
+        document.getElementById('messageInput').value = '';
+    }
+
+    function setStatus(connected) {
+        const el = document.getElementById('status');
+        el.className = connected ? 'connected' : 'disconnected';
+        el.textContent = connected ? '● 연결됨' : '● 연결 안됨';
+    }
+
+    function log(type, data) {
+        const el = document.getElementById('messages');
+        const time = new Date().toLocaleTimeString();
+        let html = '';
+
+        if (type === 'system') {
+            html = `<div class="msg system">[${time}] ${data}</div>`;
+        } else if (type === 'error') {
+            html = `<div class="msg error">[${time}] ${data}</div>`;
+        } else {
+            html = `<div class="msg">
+                <span class="time">[${time}]</span>
+                <span class="sender"> ${data.senderNickname || data.senderId}</span>
+                <span class="text">: ${data.messageText}</span>
+            </div>`;
+        }
+
+        el.innerHTML += html;
+        el.scrollTop = el.scrollHeight;
+    }
+</script>
+</body>
+</html>

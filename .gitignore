@@ -1,6 +1,7 @@
 ### Spring Boot ###
 HELP.md
 target/
+!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -128,4 +129,3 @@ $RECYCLE.BIN/
 .env
 ## 비밀번호 포함 파일 - 카톡으로 공유 예정 ##
 application-secret.yml
-!gradle/wrapper/gradle-wrapper.jar
