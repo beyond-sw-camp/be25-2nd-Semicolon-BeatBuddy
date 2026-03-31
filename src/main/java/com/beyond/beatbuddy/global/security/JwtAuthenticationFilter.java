@@ -55,10 +55,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			// 3. 토큰 유효성 검증
 			jwtUtil.validateToken(token);
 
-			// 4. email 파싱해서 SecurityContext에 등록
+			// 4. email이랑 userId 파싱해서 SecurityContext에 등록
+			Long userId = jwtUtil.getUserId(token);
 			String email = jwtUtil.getEmail(token);
+
+			UserPrincipal userPrincipal = new UserPrincipal(userId, email);
+
 			UsernamePasswordAuthenticationToken authentication =
-					new UsernamePasswordAuthenticationToken(email, null, List.of());
+					new UsernamePasswordAuthenticationToken(userPrincipal, null, List.of());
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 
 		} catch (IllegalArgumentException | JwtException e) {
