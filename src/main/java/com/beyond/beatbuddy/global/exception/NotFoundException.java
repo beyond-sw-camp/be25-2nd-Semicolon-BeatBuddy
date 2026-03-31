@@ -1,7 +1,9 @@
 package com.beyond.beatbuddy.global.exception;
 
-public class NotFoundException extends RuntimeException{
-    public NotFoundException (String message) {
-        super(message);
-    }
+import org.springframework.http.HttpStatus;
+// 404 - 리소스 없음
+public class NotFoundException extends BusinessException {
+	public NotFoundException(String message) {
+		super(HttpStatus.NOT_FOUND, message);
+	}
 }

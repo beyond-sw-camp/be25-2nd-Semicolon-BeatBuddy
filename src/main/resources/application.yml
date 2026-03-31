@@ -51,8 +51,9 @@ file:
     profile: ./uploads/profiles   # 개인 프로필
     group: ./uploads/groups       # 그룹 사진
   default-profile: /default-profile.jpg
-  default-group: /default-group.jpg
+  default-group: /default-group.png
 
 spotify:
   client-id: ${spotify.client-id}
   client-secret: ${spotify.client-secret}
+
