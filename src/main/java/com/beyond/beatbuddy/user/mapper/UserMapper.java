@@ -13,6 +13,14 @@ public interface UserMapper {
 
     List<UserGroupNicknameItemResponseDto> selectMyGroupNicknames(@Param("userId") Long userId);
 
+    int countDuplicateGroupNickname(@Param("groupId") Long groupId,
+                                    @Param("userId") Long userId,
+                                    @Param("groupNickname") String groupNickname);
+
+    int updateGroupNickname(@Param("userId") Long userId,
+                            @Param("groupId") Long groupId,
+                            @Param("groupNickname") String groupNickname);
+
     void updatePassword(@Param("userId") Long userId, @Param("newPassword") String newPassword);
 
     void updateProfileImage(@Param("userId") Long userId, @Param("profileImageUrl") String profileImageUrl);

@@ -3,6 +3,7 @@ package com.beyond.beatbuddy.user.service;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponseDto;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
+import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequestDto;
 import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequestDto;
 
 public interface UserService {
@@ -11,6 +12,8 @@ public interface UserService {
     UserGroupNicknameListResponseDto getMyGroupNicknames(String email);
 
     void changePassword(String email, ChangePasswordRequestDto request);
+
+    void updateGroupNickname(String email, Long groupId, UpdateGroupNicknameRequestDto request);
 
     void updateProfileImage(String email, UpdateProfileImageRequestDto request);
 

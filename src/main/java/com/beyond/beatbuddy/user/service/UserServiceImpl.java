@@ -5,6 +5,7 @@ import com.beyond.beatbuddy.global.exception.ErrorCode;
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponseDto;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
+import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequestDto;
 import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequestDto;
 import com.beyond.beatbuddy.user.entity.User;
 import com.beyond.beatbuddy.user.mapper.UserMapper;
@@ -31,6 +32,7 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectUserByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        // Reuse the authenticated user's primary key to query group-specific nicknames.
         return new UserGroupNicknameListResponseDto(
                 userMapper.selectMyGroupNicknames(user.getUserId())
         );
@@ -47,6 +49,28 @@ public class UserServiceImpl implements UserService {
 
         String encoded = passwordEncoder.encode(request.getNewPassword());
         userMapper.updatePassword(user.getUserId(), encoded);
+    }
+
+    @Override
+    public void updateGroupNickname(String email, Long groupId, UpdateGroupNicknameRequestDto request) {
+        User user = userMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // A group nickname must stay unique inside the same group, excluding the current user.
+        int duplicateCount = userMapper.countDuplicateGroupNickname(
+                groupId, user.getUserId(), request.getGroupNickname()
+        );
+        if (duplicateCount > 0) {
+            throw new CustomException(ErrorCode.DUPLICATE_GROUP_NICKNAME);
+        }
+
+        // If no row is updated, the user does not belong to that group.
+        int updatedRows = userMapper.updateGroupNickname(
+                user.getUserId(), groupId, request.getGroupNickname()
+        );
+        if (updatedRows == 0) {
+            throw new CustomException(ErrorCode.GROUP_MEMBER_NOT_FOUND);
+        }
     }
 
     @Override
