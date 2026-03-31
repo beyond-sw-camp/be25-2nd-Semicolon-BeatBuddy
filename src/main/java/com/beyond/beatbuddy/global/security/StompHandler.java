@@ -47,7 +47,7 @@ public class StompHandler implements ChannelInterceptor {
             }
         }
         */
-
+        
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             // TODO: 임시 하드코딩 - JWT 연동 시 교체
             accessor.getSessionAttributes().put("userId", 1L);
