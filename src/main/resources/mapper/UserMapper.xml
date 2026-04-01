@@ -21,6 +21,11 @@
         <result property="groupNickname" column="group_nickname"/>
     </resultMap>
 
+    <resultMap id="userNotificationSettingResultMap" type="com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponseDto">
+        <result property="allowPushChat" column="allow_push_chat"/>
+        <result property="allowPushSocial" column="allow_push_social"/>
+    </resultMap>
+
     <select id="selectUserByEmail" resultMap="userResultMap">
         SELECT user_id, email, password, nickname, gender,
                birth_year, profile_image_url, status
@@ -28,6 +33,30 @@
         WHERE email = #{email}
           AND status = 'ACTIVE'
     </select>
+
+    <select id="selectNotificationSetting" resultMap="userNotificationSettingResultMap">
+        SELECT allow_push_chat,
+               allow_push_social
+        FROM users
+        WHERE user_id = #{userId}
+          AND status = 'ACTIVE'
+    </select>
+
+    <update id="updateChatNotificationSetting">
+        UPDATE users
+        SET allow_push_chat = #{allowPushChat},
+            updated_at = NOW()
+        WHERE user_id = #{userId}
+          AND status = 'ACTIVE'
+    </update>
+
+    <update id="updateSocialNotificationSetting">
+        UPDATE users
+        SET allow_push_social = #{allowPushSocial},
+            updated_at = NOW()
+        WHERE user_id = #{userId}
+          AND status = 'ACTIVE'
+    </update>
 
     <select id="selectMyGroupNicknames" resultMap="userGroupNicknameResultMap">
         SELECT g.group_id,

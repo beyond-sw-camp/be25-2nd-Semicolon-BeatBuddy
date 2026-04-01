@@ -2,7 +2,10 @@ package com.beyond.beatbuddy.user.service;
 
 import com.beyond.beatbuddy.global.exception.CustomException;
 import com.beyond.beatbuddy.global.exception.ErrorCode;
+import com.beyond.beatbuddy.user.dto.request.UpdateChatNotificationRequestDto;
+import com.beyond.beatbuddy.user.dto.request.UpdateSocialNotificationRequestDto;
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponseDto;
+import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponseDto;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
 import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequestDto;
@@ -25,6 +28,27 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectUserByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return new UserProfileResponseDto(user);
+    }
+
+    @Override
+    public UserNotificationSettingResponseDto getMyNotificationSetting(String email) {
+        User user = userMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        return userMapper.selectNotificationSetting(user.getUserId());
+    }
+
+    @Override
+    public void updateChatNotificationSetting(String email, UpdateChatNotificationRequestDto request) {
+        User user = userMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        userMapper.updateChatNotificationSetting(user.getUserId(), request.getAllowPushChat());
+    }
+
+    @Override
+    public void updateSocialNotificationSetting(String email, UpdateSocialNotificationRequestDto request) {
+        User user = userMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        userMapper.updateSocialNotificationSetting(user.getUserId(), request.getAllowPushSocial());
     }
 
     @Override

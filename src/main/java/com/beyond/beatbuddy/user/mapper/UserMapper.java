@@ -2,6 +2,7 @@ package com.beyond.beatbuddy.user.mapper;
 
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameItemResponseDto;
 import com.beyond.beatbuddy.user.entity.User;
+import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponseDto;
 import java.util.List;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
@@ -10,6 +11,14 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface UserMapper {
     Optional<User> selectUserByEmail(@Param("email") String email);
+
+    UserNotificationSettingResponseDto selectNotificationSetting(@Param("userId") Long userId);
+
+    void updateChatNotificationSetting(@Param("userId") Long userId,
+                                       @Param("allowPushChat") Boolean allowPushChat);
+
+    void updateSocialNotificationSetting(@Param("userId") Long userId,
+                                         @Param("allowPushSocial") Boolean allowPushSocial);
 
     List<UserGroupNicknameItemResponseDto> selectMyGroupNicknames(@Param("userId") Long userId);
 

@@ -1,7 +1,11 @@
 package com.beyond.beatbuddy.user.controller;
 
 import com.beyond.beatbuddy.global.dto.ApiResponse;
+import com.beyond.beatbuddy.user.dto.request.UpdateChatNotificationRequestDto;
+import com.beyond.beatbuddy.user.dto.request.UpdateSocialNotificationRequestDto;
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponseDto;
+import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponseDto;
+import com.beyond.beatbuddy.user.dto.response.UserNotificationUpdateResponseDto;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
 import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequestDto;
@@ -31,6 +35,28 @@ public class UserController {
     @GetMapping("/me")
     public UserProfileResponseDto getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         return userService.getMyProfile(userDetails.getUsername());
+    }
+
+    @GetMapping("/me/notification")
+    public UserNotificationSettingResponseDto getMyNotificationSetting(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return userService.getMyNotificationSetting(userDetails.getUsername());
+    }
+
+    @PatchMapping("/me/notifications/chat")
+    public UserNotificationUpdateResponseDto updateChatNotificationSetting(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UpdateChatNotificationRequestDto request) {
+        userService.updateChatNotificationSetting(userDetails.getUsername(), request);
+        return new UserNotificationUpdateResponseDto("채팅 알림 설정이 변경되었습니다.");
+    }
+
+    @PatchMapping("/me/notifications/social")
+    public UserNotificationUpdateResponseDto updateSocialNotificationSetting(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UpdateSocialNotificationRequestDto request) {
+        userService.updateSocialNotificationSetting(userDetails.getUsername(), request);
+        return new UserNotificationUpdateResponseDto("소셜 알림 설정이 변경되었습니다.");
     }
 
     @GetMapping("/me/group-nicknames")
