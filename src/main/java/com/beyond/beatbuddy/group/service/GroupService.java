@@ -8,8 +8,8 @@ import com.beyond.beatbuddy.group.dto.GroupJoinRequest;
 import com.beyond.beatbuddy.group.dto.GroupResponse;
 import com.beyond.beatbuddy.group.entity.Group;
 import com.beyond.beatbuddy.group.entity.GroupMember;
-import com.beyond.beatbuddy.group.repository.GroupMemberRepository;
-import com.beyond.beatbuddy.group.repository.GroupRepository;
+import com.beyond.beatbuddy.group.mapper.GroupMemberMapper;
+import com.beyond.beatbuddy.group.mapper.GroupMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,39 +19,37 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class GroupService {
-    private final GroupRepository groupRepository;
-    private final GroupMemberRepository groupMemberRepository;
 
-    public boolean checkGroupNameDuplicate(String groupName) {
-
-        return groupRepository.existsByGroupName(groupName);
-    }
-
-    public boolean checkInviteCodeDuplicate(String inviteCode) {
-
-        return groupRepository.existsByInviteCode(inviteCode.toUpperCase());
-    }
+    private final GroupMapper groupMapper;
+    private final GroupMemberMapper groupMemberMapper;
 
     @Value("${app.group.default-image-url}")
     private String defaultGroupImageUrl;
 
+    public boolean checkGroupNameDuplicate(String groupName) {
+        return groupMapper.existsByGroupName(groupName);
+    }
+
+    public boolean checkInviteCodeDuplicate(String inviteCode) {
+        return groupMapper.existsByInviteCode(inviteCode.toUpperCase());
+    }
+
     @Transactional
     public Long createGroup(GroupCreateRequest request, Long creatorId) {
 
-        if (groupRepository.existsByGroupName(request.getGroupName())) {
-
+        if (groupMapper.existsByGroupName(request.getGroupName())) {
             throw new ConflictException("이미 존재하는 그룹명입니다.");
         }
 
         String inviteCode = request.getInviteCode().toUpperCase();
 
-        if (groupRepository.existsByInviteCode(inviteCode)) {
-
+        if (groupMapper.existsByInviteCode(inviteCode)) {
             throw new ConflictException("이미 사용 중인 초대 코드입니다.");
         }
 
         String groupImageUrl = request.getGroupImageUrl() != null
-                ? request.getGroupImageUrl() : defaultGroupImageUrl;
+                ? request.getGroupImageUrl()
+                : defaultGroupImageUrl;
 
         Group group = Group.builder()
                 .groupName(request.getGroupName())
@@ -59,25 +57,24 @@ public class GroupService {
                 .inviteCode(inviteCode)
                 .groupImageUrl(groupImageUrl)
                 .creatorId(creatorId)
+                .memberCount(1)
                 .build();
 
-        group.addMember();
-
-        Group savedGroup = groupRepository.save(group);
+        groupMapper.save(group);
 
         GroupMember firstMember = GroupMember.builder()
-                .groupId(savedGroup.getGroupId())
+                .groupId(group.getGroupId())
                 .userId(creatorId)
                 .groupNickname(request.getGroupNickname())
                 .build();
 
-        groupMemberRepository.save(firstMember);
+        groupMemberMapper.save(firstMember);
 
-        return savedGroup.getGroupId();
+        return group.getGroupId();
     }
 
     public GroupResponse getGroupByInviteCode(String inviteCode) {
-        Group group = groupRepository.findByInviteCode(inviteCode)
+        Group group = groupMapper.findByInviteCode(inviteCode)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 초대코드입니다."));
 
         return GroupResponse.builder()
@@ -90,32 +87,27 @@ public class GroupService {
     }
 
     public boolean isNicknameDuplicate(Long groupId, String nickname) {
-        if (!groupRepository.existsById(groupId)) {
-
+        if (!groupMapper.existsById(groupId)) {
             throw new NotFoundException("존재하지 않는 그룹입니다.");
         }
-
-        return groupMemberRepository.existsByGroupIdAndGroupNickname(groupId, nickname);
+        return groupMemberMapper.existsByGroupIdAndGroupNickname(groupId, nickname);
     }
 
     @Transactional
     public Long joinGroup(Long groupId, GroupJoinRequest request, Long userId) {
 
-        Group group = groupRepository.findById(groupId)
+        Group group = groupMapper.findById(groupId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다."));
 
         if (!group.getInviteCode().equals(request.getInviteCode().toUpperCase())) {
-
-            throw new BadRequestException(("초대코드가 올바르지 않습니다."));
+            throw new BadRequestException("초대코드가 올바르지 않습니다.");
         }
 
-        if (groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
-
+        if (groupMemberMapper.existsByGroupIdAndUserId(groupId, userId)) {
             throw new ConflictException("이미 가입한 그룹입니다.");
         }
 
-        if (groupMemberRepository.existsByGroupIdAndGroupNickname(groupId, request.getGroupNickname())) {
-
+        if (groupMemberMapper.existsByGroupIdAndGroupNickname(groupId, request.getGroupNickname())) {
             throw new ConflictException("이미 사용 중인 닉네임입니다.");
         }
 
@@ -125,9 +117,9 @@ public class GroupService {
                 .groupNickname(request.getGroupNickname())
                 .build();
 
-        groupMemberRepository.save(member);
+        groupMemberMapper.save(member);
 
-        group.addMember();
+        groupMapper.updateMemberCount(groupId, group.getMemberCount() + 1);
 
         return groupId;
     }
