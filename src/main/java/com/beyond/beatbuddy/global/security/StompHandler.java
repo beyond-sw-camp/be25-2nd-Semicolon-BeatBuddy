@@ -1,5 +1,7 @@
 package com.beyond.beatbuddy.global.security;
 
+import com.beyond.beatbuddy.global.util.JwtUtil;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -16,19 +18,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class StompHandler implements ChannelInterceptor {
 
-    //private final JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        /*
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            String token = accessor.getFirstNativeHeader("Authorization");
+            String bearerToken = accessor.getFirstNativeHeader("Authorization");
 
-            if (token != null && token.startsWith("Bearer ")) {
+            if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
                 try{
-
+                    String token = jwtUtil.substringToken(bearerToken);
                     Claims claims = jwtUtil.extractClaims(token);
 
                     Long userId = Long.valueOf(claims.getSubject());
@@ -46,18 +47,16 @@ public class StompHandler implements ChannelInterceptor {
                 }
             }
         }
-        */
-        
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+
+        /*if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             // TODO: 임시 하드코딩 - JWT 연동 시 교체
             accessor.getSessionAttributes().put("userId", 1L);
             accessor.getSessionAttributes().put("email", "test@test.com");
             accessor.getSessionAttributes().put("nickname", "테스터");
-        }
+        }*/
 
         if (StompCommand.SEND.equals(accessor.getCommand())) {
             Object userId = accessor.getSessionAttributes().get("userId");
-
 
 
             if (userId == null) {
