@@ -1,14 +1,13 @@
-package com.beyond.beatbuddy.group.repository;
+package com.beyond.beatbuddy.group.mapper;
 
 import com.beyond.beatbuddy.group.entity.Group;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.Optional;
 
 @Mapper
-public interface GroupRepository {
-    void save(Group group);
-
-    Optional<Group> findById(Long groupId);
+public interface GroupMapper {
 
     boolean existsByGroupName(String groupName);
 
@@ -16,5 +15,11 @@ public interface GroupRepository {
 
     Optional<Group> findByInviteCode(String inviteCode);
 
-    void update(Group group);
+    Optional<Group> findById(Long groupId);
+
+    boolean existsById(Long groupId);
+
+    void save(Group group);
+
+    void updateMemberCount(@Param("groupId") Long groupId, @Param("memberCount") int memberCount);
 }
