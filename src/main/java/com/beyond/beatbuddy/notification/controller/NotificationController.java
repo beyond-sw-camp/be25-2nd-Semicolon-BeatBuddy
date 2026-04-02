@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.beyond.beatbuddy.global.security.UserPrincipal;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "알림", description = "알림 읽음 처리 API")
@@ -23,9 +23,9 @@ public class NotificationController {
     @Operation(summary = "알림 읽음 처리")
     @PatchMapping("/{notificationId}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long notificationId) {
-        Long myUserId = Long.parseLong(userDetails.getUsername());
+        Long myUserId = userPrincipal.getUserId();
         notificationService.markAsRead(myUserId, notificationId);
         return ApiResponse.of(HttpStatus.OK, "알림을 읽음 처리했습니다.", null);
     }

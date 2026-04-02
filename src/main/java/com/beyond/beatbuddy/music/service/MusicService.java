@@ -16,12 +16,12 @@ import com.beyond.beatbuddy.music.mapper.UserFavMusicMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
-import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
 
 import java.io.IOException;
@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MusicService {
@@ -58,6 +59,7 @@ public class MusicService {
             ClientCredentialsRequest request = spotifyApi.clientCredentials().build();
             ClientCredentials credentials = request.execute();
             spotifyApi.setAccessToken(credentials.getAccessToken());
+            log.info("Spotify 토큰 갱신 성공. token={}", credentials.getAccessToken());
         } catch (Exception e) {
             throw new RuntimeException("Spotify 인증 토큰 갱신 실패: " + e.getMessage(), e);
         }
@@ -78,7 +80,7 @@ public class MusicService {
     public List<MusicSearchResponse> searchFromSpotify(String query) {
         refreshSpotifyToken();
         try {
-            var searchResult = spotifyApi.searchTracks(query).limit(20).build().execute();
+            var searchResult = spotifyApi.searchTracks(query).build().execute();
             return Arrays.stream(searchResult.getItems())
                     .map(track -> MusicSearchResponse.builder()
                             .musicId(track.getId())
@@ -107,23 +109,17 @@ public class MusicService {
             return;
         }
 
-        // 1. Spotify에서 트랙 정보 조회
+        // 1. Spotify에서 트랙 정보 직접 조회 (라이브러리 파싱 버그로 인해 HTTP 직접 호출)
         refreshSpotifyToken();
-        Track track;
-        try {
-            track = spotifyApi.getTrack(trackId).build().execute();
-        } catch (Exception e) {
-            throw new NotFoundException("Spotify에서 트랙을 찾을 수 없습니다: " + trackId);
-        }
+        JsonNode trackNode = fetchSpotifyTrack(trackId);
 
-        String albumId = track.getAlbum().getId();
-        String albumName = track.getAlbum().getName();
-        String albumCoverUrl = track.getAlbum().getImages().length > 0
-                ? track.getAlbum().getImages()[0].getUrl()
-                : null;
-        String trackName = track.getName();
-        String artistName = track.getArtists()[0].getName();
-        long popularity = track.getPopularity();
+        String albumId = trackNode.path("album").path("id").asText();
+        String albumName = trackNode.path("album").path("name").asText();
+        JsonNode images = trackNode.path("album").path("images");
+        String albumCoverUrl = images.isArray() && images.size() > 0 ? images.get(0).path("url").asText(null) : null;
+        String trackName = trackNode.path("name").asText();
+        String artistName = trackNode.path("artists").get(0).path("name").asText();
+        long popularity = trackNode.path("popularity").asLong(0);
 
         // 2. 앨범 저장 (ON DUPLICATE KEY UPDATE - covers/name 갱신)
         albumMapper.insertAlbum(Album.builder()
@@ -153,6 +149,32 @@ public class MusicService {
 
         // 5. music_features 저장 (중복이면 INSERT IGNORE로 그냥 넘어감)
         musicFeatureMapper.insertMusicFeature(feature);
+    }
+
+    // ───────────────────────────────────────────────
+    // Spotify Track 직접 조회 (라이브러리 파싱 버그 우회)
+    // ───────────────────────────────────────────────
+    private JsonNode fetchSpotifyTrack(String trackId) {
+        try {
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.spotify.com/v1/tracks/" + trackId))
+                    .header("Authorization", "Bearer " + spotifyApi.getAccessToken())
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+            JsonNode node = objectMapper.readTree(response.body());
+            if (node.has("error")) {
+                throw new NotFoundException("Spotify에서 트랙을 찾을 수 없습니다: " + trackId);
+            }
+            return node;
+        } catch (NotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Spotify 트랙 조회 실패: " + e.getMessage(), e);
+        }
     }
 
     // ───────────────────────────────────────────────
