@@ -7,6 +7,9 @@ import com.beyond.beatbuddy.chat.dto.response.ChatRoomResponse;
 import com.beyond.beatbuddy.chat.entity.ChatRoom;
 import com.beyond.beatbuddy.chat.mapper.ChatRoomMapper;
 import com.beyond.beatbuddy.global.dto.ApiResponse;
+import com.beyond.beatbuddy.global.exception.BadRequestException;
+import com.beyond.beatbuddy.global.exception.ForbiddenException;
+import com.beyond.beatbuddy.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,8 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Slf4j
@@ -25,19 +28,31 @@ import java.util.Optional;
 public class ChatRoomService {
     private final ChatRoomMapper chatRoomMapper;
 
+    // 채팅방 조회 or 생성
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createChatRoom(Long loginUserId, Long opponentUserId) {
         if (loginUserId.equals(opponentUserId)) {
-            throw new IllegalArgumentException("자기 자신에게 채팅을 보낼 수 없습니다.");
+            throw new BadRequestException("자기 자신에게 채팅을 보낼 수 없습니다.");
         }
-
-        // 그 유저 존재여부 확인
 
         Optional<ChatRoom> existingRoom = chatRoomMapper.findRoomByUsers(loginUserId, opponentUserId);
+
         if (existingRoom.isPresent()) {
-            ChatRoomResponse response = chatRoomMapper.findChatRoomInfo(existingRoom.get().getRoomId(), loginUserId);
-            return ApiResponse.of(HttpStatus.OK, "채팅방 조회 성공", response);
+            Long roomId = existingRoom.get().getRoomId();
+
+            // 내가 나갔던 방인지 확인
+            boolean isExited = chatRoomMapper.isMyExited(roomId, loginUserId);
+
+            if (isExited) {
+                // 나갔던 방이면 재활성화
+                chatRoomMapper.reactivateMember(roomId, loginUserId);
+            }
+            // 안 나갔으면 그냥 반환 (아무것도 안 함!)
+
+            return ApiResponse.of(HttpStatus.OK, "채팅방 조회 성공",
+                    chatRoomMapper.findChatRoomInfo(roomId, loginUserId));
         }
 
+        // 새 채팅방 생성
         ChatRoom newRoom = new ChatRoom();
         newRoom.setUserAId(Math.min(loginUserId, opponentUserId));
         newRoom.setUserBId(Math.max(loginUserId, opponentUserId));
@@ -45,36 +60,56 @@ public class ChatRoomService {
         chatRoomMapper.insertChatRoomMember(newRoom.getRoomId(), loginUserId);
         chatRoomMapper.insertChatRoomMember(newRoom.getRoomId(), opponentUserId);
 
-        ChatRoomResponse response = chatRoomMapper.findChatRoomInfo(newRoom.getRoomId(), loginUserId);
-        return ApiResponse.of(HttpStatus.CREATED, "채팅방이 생성되었습니다.", response);
+        return ApiResponse.of(HttpStatus.CREATED, "채팅방이 생성되었습니다.",
+                chatRoomMapper.findChatRoomInfo(newRoom.getRoomId(), loginUserId));
     }
 
+    // 채팅방 입장
     @Transactional
     public ChatRoomEnterResponse enterChatRoom(Long roomId, Long loginUserId) {
-
-        // 채팅방 존재 여부 확인
         if (chatRoomMapper.existsById(roomId) == 0) {
-            throw new NoSuchElementException("채팅방을 찾을 수 없습니다.");
+            throw new NotFoundException("채팅방을 찾을 수 없습니다.");
         }
 
-        // 채팅방 접근 가능 여부 확인
         Long opponentUserId = chatRoomMapper.findOpponentUserId(roomId, loginUserId);
         if (opponentUserId == null) {
-            throw new NoSuchElementException("채팅방에 접근할 수 없습니다.");
+            throw new ForbiddenException("채팅방에 접근할 수 없습니다.");
         }
 
+        // rejoined_at 조회
+        LocalDateTime rejoinedAt = chatRoomMapper.findRejoinedAt(roomId, loginUserId);
+
         // 메시지 조회
-        List<ChatMessageResponse> messages = chatRoomMapper.findMessages(roomId, loginUserId, opponentUserId);
+        List<ChatMessageResponse> messages = chatRoomMapper.findMessages(
+                roomId, loginUserId, opponentUserId, rejoinedAt);
 
         // 읽음 처리
         chatRoomMapper.updateReadStatus(roomId, loginUserId);
 
-        return new ChatRoomEnterResponse(messages);
+        // 상대방 나갔는지 확인
+        boolean isOpponentExited = chatRoomMapper.isOpponentExited(roomId, loginUserId);
+
+        return new ChatRoomEnterResponse(messages, isOpponentExited);
+
     }
 
+    // 채팅방 목록 조회
     @Transactional(readOnly = true)
     public List<ChatRoomListResponse> getChatRooms(Long loginUserId) {
         return chatRoomMapper.findAllByUserId(loginUserId);
+    }
+
+    // 채팅방 나가기
+    @Transactional
+    public void exitChatRoom(Long roomId, Long loginUserId) {
+        if (chatRoomMapper.existsById(roomId) == 0) {
+            throw new NotFoundException("채팅방을 찾을 수 없습니다.");
+        }
+        Long opponentUserId = chatRoomMapper.findOpponentUserId(roomId, loginUserId);
+        if (opponentUserId == null) {
+            throw new ForbiddenException("채팅방에 접근할 수 없습니다.");
+        }
+        chatRoomMapper.exitChatRoom(roomId, loginUserId);
     }
 }
 

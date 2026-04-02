@@ -10,6 +10,8 @@ import com.beyond.beatbuddy.global.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +36,7 @@ import java.util.Map;
 @Tag(name = "Auth APIs", description = "인증 관련 API 목록")
 public class AuthController {
 	private final AuthService authService;
+
 
 	// 회원가입
 	@PostMapping(value = "/signup", consumes = "multipart/form-data")

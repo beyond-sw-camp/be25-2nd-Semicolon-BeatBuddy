@@ -11,4 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class ChatRoomEnterResponse {
     private List<ChatMessageResponse> messages;
+    private boolean isOpponentExited;
 }
