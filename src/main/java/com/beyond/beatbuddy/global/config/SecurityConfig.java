@@ -58,6 +58,8 @@ public class SecurityConfig {
 								"/api/v1/auth/password/reset",
 								"/default-profile.jpg",
 								"/default-group.jpg",
+								"/images/profiles/**",
+								"/images/groups/**",
 								"/swagger-ui/**",
 								"/v3/api-docs/**",
 								"/ws/chat/**"
