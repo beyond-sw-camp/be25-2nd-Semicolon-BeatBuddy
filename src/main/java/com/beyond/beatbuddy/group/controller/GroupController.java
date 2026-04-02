@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -113,5 +114,17 @@ public class GroupController {
         List<GroupResponse> groups = groupService.getMyGroups(userId);
 
         return ApiResponse.of(HttpStatus.OK, "가입 그룹 조회 성공", groups);
+    }
+
+    @Operation(summary = "그룹 나가기")
+    @DeleteMapping("/{groupId}/members/me")
+    public ResponseEntity<ApiResponse<Void>> leaveGroup(
+            @PathVariable Long groupId,
+            @RequestHeader ("Authorization") String token) {
+
+        Long userId = jwtUtil.getUserId(jwtUtil.substringToken(token));
+        groupService.leaveGroup(groupId, userId);
+
+        return ApiResponse.of(HttpStatus.OK, "그룹 나가기 성공", null);
     }
 }

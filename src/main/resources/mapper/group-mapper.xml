@@ -66,4 +66,8 @@
             ORDER BY gm.joined_at DESC
     </select>
 
+    <delete id="deleteById">
+        DELETE FROM user_groups
+        WHERE group_id = #{groupID}
+    </delete>
 </mapper>

@@ -25,4 +25,6 @@ public interface GroupMapper {
     void updateMemberCount(@Param("groupId") Long groupId, @Param("memberCount") int memberCount);
 
     List<Group> findGroupsByUserId(Long userId);
+
+    void deleteById(Long groupId);
 }

@@ -141,4 +141,23 @@ public class GroupService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void leaveGroup(Long groupId, Long userId) {
+
+        Group group = groupMapper.findById(groupId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다."));
+
+        if (!groupMemberMapper.existsByGroupIdAndUserId(groupId, userId)) {
+            throw new NotFoundException("가입되지 않은 그룹입니다.");
+        }
+
+        groupMemberMapper.deleteByGroupIdAndUserId(groupId, userId);
+
+        groupMapper.updateMemberCount(groupId, group.getMemberCount() -1);
+
+        if (group.getMemberCount() - 1 == 0) {
+            groupMapper.deleteById(groupId);
+        }
+    }
 }
