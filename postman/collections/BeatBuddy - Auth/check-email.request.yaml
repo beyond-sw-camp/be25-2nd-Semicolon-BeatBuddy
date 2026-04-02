@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'check-email'
+method: GET
+url: '{{baseUrl}}/api/v1/auth/email/exists'
+order: 7000
+queryParams:
+  - key: email
+    value: user@example.com

@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'search-music-spotify'
+method: GET
+url: '{{baseUrl}}/api/v1/music/search/spotify'
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+queryParams:
+  - key: query
+    value: BTS

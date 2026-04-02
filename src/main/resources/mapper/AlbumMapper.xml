@@ -12,4 +12,10 @@
             album_cover_url = VALUES(album_cover_url)
     </insert>
 
+    <select id="findById" resultType="com.beyond.beatbuddy.music.entity.Album">
+        SELECT album_id, album_name, album_cover_url
+        FROM albums
+        WHERE album_id = #{albumId}
+    </select>
+
 </mapper>

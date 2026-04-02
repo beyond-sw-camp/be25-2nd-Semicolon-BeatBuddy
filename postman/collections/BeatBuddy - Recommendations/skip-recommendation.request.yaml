@@ -1,0 +1,13 @@
+$kind: http-request
+name: 'skip-recommendation'
+method: POST
+url: '{{baseUrl}}/api/v1/groups/{{groupId}}/recommendations/{{userId}}/skip'
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+pathVariables:
+  - key: groupId
+    value: '1'
+  - key: userId
+    value: '2'

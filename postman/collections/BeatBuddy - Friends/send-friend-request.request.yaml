@@ -1,0 +1,16 @@
+$kind: http-request
+name: 'send-friend-request'
+method: POST
+url: '{{baseUrl}}/api/v1/friends/requests'
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "receiverId": 2
+    }

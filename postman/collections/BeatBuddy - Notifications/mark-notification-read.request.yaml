@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'mark-notification-read'
+method: PATCH
+url: '{{baseUrl}}/api/v1/notifications/{{notificationId}}/read'
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+pathVariables:
+  - key: notificationId
+    value: '1'

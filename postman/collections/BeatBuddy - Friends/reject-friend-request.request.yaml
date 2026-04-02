@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'reject-friend-request'
+method: POST
+url: '{{baseUrl}}/api/v1/friends/requests/{{requestId}}/reject'
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+pathVariables:
+  - key: requestId
+    value: '1'

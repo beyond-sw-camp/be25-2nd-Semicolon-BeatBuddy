@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'refresh-token'
+method: POST
+url: '{{baseUrl}}/api/v1/auth/token/refresh'
+order: 6000

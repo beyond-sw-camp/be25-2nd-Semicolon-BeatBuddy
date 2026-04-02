@@ -19,8 +19,9 @@
         <result property="speechiness"      column="speechiness"/>
     </resultMap>
 
+    <!-- MUSIC_001: 음악 분석 데이터 저장 (중복 시 갱신 안 함 - DML 명세 기준) -->
     <insert id="insertMusicFeature">
-        INSERT INTO music_features (
+        INSERT IGNORE INTO music_features (
             music_id, album_id, track_name, artist_name,
             popularity, energy, danceability, happiness,
             acousticness, instrumentalness, liveness, speechiness
@@ -29,22 +30,24 @@
             #{popularity}, #{energy}, #{danceability}, #{happiness},
             #{acousticness}, #{instrumentalness}, #{liveness}, #{speechiness}
         )
-        ON DUPLICATE KEY UPDATE
-            album_id          = VALUES(album_id),
-            track_name        = VALUES(track_name),
-            artist_name       = VALUES(artist_name),
-            popularity        = VALUES(popularity),
-            energy            = VALUES(energy),
-            danceability      = VALUES(danceability),
-            happiness         = VALUES(happiness),
-            acousticness      = VALUES(acousticness),
-            instrumentalness  = VALUES(instrumentalness),
-            liveness          = VALUES(liveness),
-            speechiness       = VALUES(speechiness)
     </insert>
 
     <select id="findById" resultMap="MusicFeatureResultMap">
         SELECT * FROM music_features WHERE music_id = #{musicId}
+    </select>
+
+    <!-- MUSIC_002: 곡명 / 아티스트 / 앨범명 키워드 검색 -->
+    <select id="searchByKeyword" resultType="com.beyond.beatbuddy.music.dto.response.MusicSearchResponse">
+        SELECT m.music_id       AS musicId,
+               m.track_name     AS trackName,
+               m.artist_name    AS artistName,
+               a.album_name     AS albumName,
+               a.album_cover_url AS albumCoverUrl
+        FROM music_features m
+        LEFT JOIN albums a ON m.album_id = a.album_id
+        WHERE m.track_name  LIKE CONCAT('%', #{keyword}, '%')
+           OR m.artist_name LIKE CONCAT('%', #{keyword}, '%')
+           OR a.album_name  LIKE CONCAT('%', #{keyword}, '%')
     </select>
 
 </mapper>

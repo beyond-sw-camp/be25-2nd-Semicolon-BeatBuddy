@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'analyze-taste'
+method: POST
+url: '{{baseUrl}}/api/v1/music/taste-analyze'
+order: 7000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'

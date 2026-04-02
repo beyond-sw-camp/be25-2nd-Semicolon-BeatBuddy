@@ -1,0 +1,14 @@
+$kind: http-request
+name: 'signup'
+method: POST
+url: '{{baseUrl}}/api/v1/auth/signup'
+order: 1000
+body:
+  type: formdata
+  content:
+    - key: data
+      value: '{"email":"user@example.com","password":"Pass123!@#","nickname":"testuser","gender":"MALE","birthYear":1995}'
+      type: text
+    - key: profileImage
+      src: ''
+      type: file

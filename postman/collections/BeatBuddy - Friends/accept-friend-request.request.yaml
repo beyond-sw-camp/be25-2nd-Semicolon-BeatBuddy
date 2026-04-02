@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'accept-friend-request'
+method: POST
+url: '{{baseUrl}}/api/v1/friends/requests/{{requestId}}/accept'
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+pathVariables:
+  - key: requestId
+    value: '1'

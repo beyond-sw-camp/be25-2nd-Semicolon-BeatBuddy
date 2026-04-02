@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'delete-friend'
+method: DELETE
+url: '{{baseUrl}}/api/v1/friends/{{friendId}}'
+order: 6000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+pathVariables:
+  - key: friendId
+    value: '2'

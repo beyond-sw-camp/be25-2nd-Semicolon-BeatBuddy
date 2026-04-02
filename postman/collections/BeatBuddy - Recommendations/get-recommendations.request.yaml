@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'get-recommendations'
+method: GET
+url: '{{baseUrl}}/api/v1/groups/{{groupId}}/recommendations'
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+pathVariables:
+  - key: groupId
+    value: '1'
