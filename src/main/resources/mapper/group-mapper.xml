@@ -58,4 +58,12 @@
         WHERE group_id = #{groupId}
     </update>
 
+    <select id="findGroupsByUserId" resultMap="GroupResultMap">
+            SELECT ug.*
+            FROM user_groups ug
+            JOIN group_members gm ON ug.group_id = gm.group_id
+            WHERE gm.user_id = #{userId}
+            ORDER BY gm.joined_at DESC
+    </select>
+
 </mapper>

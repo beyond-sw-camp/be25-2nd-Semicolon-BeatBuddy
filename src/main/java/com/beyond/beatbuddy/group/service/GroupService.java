@@ -15,6 +15,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -122,5 +126,19 @@ public class GroupService {
         groupMapper.updateMemberCount(groupId, group.getMemberCount() + 1);
 
         return groupId;
+    }
+
+    public List<GroupResponse> getMyGroups(Long userId) {
+        List<Group> groups = groupMapper.findGroupsByUserId(userId);
+
+        return groups.stream()
+                .map(group -> GroupResponse.builder()
+                        .groupId(group.getGroupId())
+                        .groupName(group.getGroupName())
+                        .description(group.getDescription())
+                        .memberCount(group.getMemberCount())
+                        .groupImageUrl(group.getGroupImageUrl())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

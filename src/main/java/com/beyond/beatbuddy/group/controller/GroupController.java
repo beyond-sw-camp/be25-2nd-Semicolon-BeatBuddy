@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/groups")
@@ -100,5 +102,16 @@ public class GroupController {
         Long joinedGroupId = groupService.joinGroup(groupId, request, userId);
 
         return ApiResponse.of(HttpStatus.CREATED, "그룹 가입이 완료되었습니다.", joinedGroupId);
+    }
+
+    @Operation(summary = "가입 그룹 조회")
+    @GetMapping("/my-groups")
+    public ResponseEntity<ApiResponse<List<GroupResponse>>> getMyGroups(
+            @RequestHeader("Authorization") String token) {
+
+        Long userId = jwtUtil.getUserId(jwtUtil.substringToken(token));
+        List<GroupResponse> groups = groupService.getMyGroups(userId);
+
+        return ApiResponse.of(HttpStatus.OK, "가입 그룹 조회 성공", groups);
     }
 }

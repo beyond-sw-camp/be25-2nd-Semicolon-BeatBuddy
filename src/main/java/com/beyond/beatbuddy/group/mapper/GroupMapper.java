@@ -4,6 +4,7 @@ import com.beyond.beatbuddy.group.entity.Group;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 @Mapper
@@ -22,4 +23,6 @@ public interface GroupMapper {
     void save(Group group);
 
     void updateMemberCount(@Param("groupId") Long groupId, @Param("memberCount") int memberCount);
+
+    List<Group> findGroupsByUserId(Long userId);
 }
