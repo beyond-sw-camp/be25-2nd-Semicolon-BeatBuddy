@@ -13,10 +13,6 @@ public interface GroupMemberMapper {
 
     boolean existsByGroupIdAndGroupNickname(@Param("groupId") Long groupId, @Param("groupNickname") String groupNickname);
 
-    List<GroupMember> findByUserId(Long userId);
-
-    List<GroupMember> findByGroupId(Long groupId);
-
     void save(GroupMember groupMember);
 
     void deleteByGroupIdAndUserId(@Param("groupId") Long groupId, @Param("userId") Long userId);

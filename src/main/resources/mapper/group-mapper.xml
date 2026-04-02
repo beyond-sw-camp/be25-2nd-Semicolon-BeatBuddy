@@ -68,6 +68,6 @@
 
     <delete id="deleteById">
         DELETE FROM user_groups
-        WHERE group_id = #{groupID}
+        WHERE group_id = #{groupId}
     </delete>
 </mapper>

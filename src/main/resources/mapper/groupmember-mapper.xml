@@ -25,16 +25,6 @@
           AND group_nickname = #{groupNickname}
     </select>
 
-    <select id="findByUserId" resultMap="GroupMemberResultMap">
-        SELECT * FROM group_members
-        WHERE user_id = #{userId}
-    </select>
-
-    <select id="findByGroupId" resultMap="GroupMemberResultMap">
-        SELECT * FROM group_members
-        WHERE group_id = #{groupId}
-    </select>
-
     <insert id="save" useGeneratedKeys="true" keyProperty="memberId">
         INSERT INTO group_members (
             group_id, user_id, group_nickname
