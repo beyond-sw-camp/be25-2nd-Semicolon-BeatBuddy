@@ -1,8 +1,8 @@
 package com.beyond.beatbuddy.friend.service;
 
-import com.beyond.beatbuddy.friend.dto.FriendDetailResponseDto;
-import com.beyond.beatbuddy.friend.dto.FriendRequestDto;
-import com.beyond.beatbuddy.friend.dto.FriendResponseDto;
+import com.beyond.beatbuddy.friend.dto.FriendDetailResponse;
+import com.beyond.beatbuddy.friend.dto.FriendRequest;
+import com.beyond.beatbuddy.friend.dto.FriendResponse;
 import com.beyond.beatbuddy.friend.entity.Friendship;
 import com.beyond.beatbuddy.friend.mapper.FriendMapper;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class FriendService {
      * - 이미 ACCEPTED 친구인 경우 불가
      */
     @Transactional
-    public void sendFriendRequest(Long requesterId, FriendRequestDto dto) {
+    public void sendFriendRequest(Long requesterId, FriendRequest dto) {
         Long receiverId = dto.getReceiverId();
 
         if (requesterId.equals(receiverId)) {
@@ -89,7 +89,7 @@ public class FriendService {
      * 내 친구 목록 조회 (ACCEPTED, 양방향)
      */
     @Transactional(readOnly = true)
-    public List<FriendResponseDto> getMyFriends(Long userId) {
+    public List<FriendResponse> getMyFriends(Long userId) {
         return friendMapper.findFriendsByUserId(userId);
     }
 
@@ -97,8 +97,8 @@ public class FriendService {
      * 친구 상세 정보 조회
      */
     @Transactional(readOnly = true)
-    public FriendDetailResponseDto getFriendDetail(Long myUserId, Long friendId) {
-        FriendDetailResponseDto detail = friendMapper.findFriendDetail(myUserId, friendId);
+    public FriendDetailResponse getFriendDetail(Long myUserId, Long friendId) {
+        FriendDetailResponse detail = friendMapper.findFriendDetail(myUserId, friendId);
         if (detail == null) {
             throw new NoSuchElementException("친구 정보를 찾을 수 없습니다.");
         }

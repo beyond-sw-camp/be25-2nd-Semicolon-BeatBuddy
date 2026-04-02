@@ -1,8 +1,8 @@
 package com.beyond.beatbuddy.friend.controller;
 
-import com.beyond.beatbuddy.friend.dto.FriendDetailResponseDto;
-import com.beyond.beatbuddy.friend.dto.FriendRequestDto;
-import com.beyond.beatbuddy.friend.dto.FriendResponseDto;
+import com.beyond.beatbuddy.friend.dto.FriendDetailResponse;
+import com.beyond.beatbuddy.friend.dto.FriendRequest;
+import com.beyond.beatbuddy.friend.dto.FriendResponse;
 import com.beyond.beatbuddy.friend.service.FriendService;
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +29,7 @@ public class FriendController {
     @PostMapping("/requests")
     public ResponseEntity<ApiResponse<Void>> sendRequest(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody FriendRequestDto dto) {
+            @RequestBody FriendRequest dto) {
         Long myUserId = Long.parseLong(userDetails.getUsername());
         friendService.sendFriendRequest(myUserId, dto);
         return ApiResponse.of(HttpStatus.CREATED, "친구 요청을 성공적으로 보냈습니다.", null);
@@ -60,21 +60,21 @@ public class FriendController {
     /** FRIEND_004 - 내 친구 목록 조회 */
     @Operation(summary = "내 친구 목록 조회")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<FriendResponseDto>>> getMyFriends(
+    public ResponseEntity<ApiResponse<List<FriendResponse>>> getMyFriends(
             @AuthenticationPrincipal UserDetails userDetails) {
         Long myUserId = Long.parseLong(userDetails.getUsername());
-        List<FriendResponseDto> friends = friendService.getMyFriends(myUserId);
+        List<FriendResponse> friends = friendService.getMyFriends(myUserId);
         return ApiResponse.of(HttpStatus.OK, "친구 목록 조회 성공", friends);
     }
 
     /** FRIEND_005 - 친구 상세 정보 조회 */
     @Operation(summary = "친구 상세 정보 조회")
     @GetMapping("/{friendId}")
-    public ResponseEntity<ApiResponse<FriendDetailResponseDto>> getFriendDetail(
+    public ResponseEntity<ApiResponse<FriendDetailResponse>> getFriendDetail(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long friendId) {
         Long myUserId = Long.parseLong(userDetails.getUsername());
-        FriendDetailResponseDto detail = friendService.getFriendDetail(myUserId, friendId);
+        FriendDetailResponse detail = friendService.getFriendDetail(myUserId, friendId);
         return ApiResponse.of(HttpStatus.OK, "친구 상세 정보 조회 성공", detail);
     }
 

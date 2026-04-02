@@ -54,7 +54,7 @@
     </delete>
 
     <!-- 내 친구 목록 (ACCEPTED, 양방향) -->
-    <select id="findFriendsByUserId" resultType="com.beyond.beatbuddy.friend.dto.FriendResponseDto">
+    <select id="findFriendsByUserId" resultType="com.beyond.beatbuddy.friend.dto.FriendResponse">
         SELECT
             f.friendship_id   AS friendshipId,
             CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END AS friendId,
@@ -69,7 +69,7 @@
     </select>
 
     <!-- 친구 상세 조회 (프로필 + 최애곡 목록) -->
-    <resultMap id="FriendDetailResultMap" type="com.beyond.beatbuddy.friend.dto.FriendDetailResponseDto">
+    <resultMap id="FriendDetailResultMap" type="com.beyond.beatbuddy.friend.dto.FriendDetailResponse">
         <id property="friendId" column="friend_id"/>
         <result property="nickname" column="nickname"/>
         <result property="profileImageUrl" column="profile_image_url"/>

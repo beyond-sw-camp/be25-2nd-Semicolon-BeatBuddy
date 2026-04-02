@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FriendResponseDto {
+public class FriendResponse {
     private Long friendshipId;
     private Long friendId; // 상대방 userId
     private String nickname;

@@ -57,3 +57,4 @@ spotify:
   client-id: ${spotify.client-id}
   client-secret: ${spotify.client-secret}
 
+

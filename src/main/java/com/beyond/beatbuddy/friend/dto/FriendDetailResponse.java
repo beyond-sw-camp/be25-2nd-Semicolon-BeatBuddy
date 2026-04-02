@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FriendDetailResponseDto {
+public class FriendDetailResponse {
     private Long friendId;
     private String nickname;
     private String profileImageUrl;
