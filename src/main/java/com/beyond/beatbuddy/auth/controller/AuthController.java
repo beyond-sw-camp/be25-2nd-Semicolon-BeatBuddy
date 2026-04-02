@@ -100,7 +100,7 @@ public class AuthController {
 	@PostMapping("/logout")
 	@Operation(summary = "로그아웃", description = "refresh token 쿠키 삭제 및 access token 블랙리스트 등록")
 	public ResponseEntity<?> logout(
-			@RequestHeader("Authorization") String bearerToken,
+			@Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
 			HttpServletResponse response) {
 
 		authService.logout(bearerToken);
@@ -117,6 +117,7 @@ public class AuthController {
 
 	// refresh
 	@PostMapping("/token/refresh")
+	@Operation(summary = "리프레쉬", description = "refresh token으로 accestoken 재발급")
 	public ResponseEntity<?> refreshToken(
 			@CookieValue(name = "refreshToken", required = false)String refreshToken) {
 
