@@ -10,8 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.beyond.beatbuddy.global.security.UserPrincipal;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,9 +28,9 @@ public class FriendController {
     @Operation(summary = "친구 요청 보내기")
     @PostMapping("/requests")
     public ResponseEntity<ApiResponse<Void>> sendRequest(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody FriendRequest dto) {
-        Long myUserId = Long.parseLong(userDetails.getUsername());
+        Long myUserId = userPrincipal.getUserId();
         friendService.sendFriendRequest(myUserId, dto);
         return ApiResponse.of(HttpStatus.CREATED, "친구 요청을 성공적으로 보냈습니다.", null);
     }
@@ -39,9 +39,9 @@ public class FriendController {
     @Operation(summary = "친구 요청 수락")
     @PostMapping("/requests/{requestId}/accept")
     public ResponseEntity<ApiResponse<Void>> acceptRequest(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long requestId) {
-        Long myUserId = Long.parseLong(userDetails.getUsername());
+        Long myUserId = userPrincipal.getUserId();
         friendService.acceptFriendRequest(myUserId, requestId);
         return ApiResponse.of(HttpStatus.OK, "친구 요청을 수락했습니다.", null);
     }
@@ -50,9 +50,9 @@ public class FriendController {
     @Operation(summary = "친구 요청 거절")
     @PostMapping("/requests/{requestId}/reject")
     public ResponseEntity<ApiResponse<Void>> rejectRequest(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long requestId) {
-        Long myUserId = Long.parseLong(userDetails.getUsername());
+        Long myUserId = userPrincipal.getUserId();
         friendService.rejectFriendRequest(myUserId, requestId);
         return ApiResponse.of(HttpStatus.OK, "친구 요청을 거절했습니다.", null);
     }
@@ -61,8 +61,8 @@ public class FriendController {
     @Operation(summary = "내 친구 목록 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<List<FriendResponse>>> getMyFriends(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long myUserId = Long.parseLong(userDetails.getUsername());
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long myUserId = userPrincipal.getUserId();
         List<FriendResponse> friends = friendService.getMyFriends(myUserId);
         return ApiResponse.of(HttpStatus.OK, "친구 목록 조회 성공", friends);
     }
@@ -71,9 +71,9 @@ public class FriendController {
     @Operation(summary = "친구 상세 정보 조회")
     @GetMapping("/{friendId}")
     public ResponseEntity<ApiResponse<FriendDetailResponse>> getFriendDetail(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long friendId) {
-        Long myUserId = Long.parseLong(userDetails.getUsername());
+        Long myUserId = userPrincipal.getUserId();
         FriendDetailResponse detail = friendService.getFriendDetail(myUserId, friendId);
         return ApiResponse.of(HttpStatus.OK, "친구 상세 정보 조회 성공", detail);
     }
@@ -82,9 +82,9 @@ public class FriendController {
     @Operation(summary = "친구 삭제")
     @DeleteMapping("/{friendId}")
     public ResponseEntity<ApiResponse<Void>> deleteFriend(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long friendId) {
-        Long myUserId = Long.parseLong(userDetails.getUsername());
+        Long myUserId = userPrincipal.getUserId();
         friendService.deleteFriend(myUserId, friendId);
         return ApiResponse.of(HttpStatus.OK, "친구를 삭제했습니다.", null);
     }
