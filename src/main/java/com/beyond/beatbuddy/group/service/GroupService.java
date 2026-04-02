@@ -8,14 +8,12 @@ import com.beyond.beatbuddy.group.dto.GroupJoinRequest;
 import com.beyond.beatbuddy.group.dto.GroupResponse;
 import com.beyond.beatbuddy.group.entity.Group;
 import com.beyond.beatbuddy.group.entity.GroupMember;
-import com.beyond.beatbuddy.group.mapper.GroupMemberMapper;
 import com.beyond.beatbuddy.group.mapper.GroupMapper;
+import com.beyond.beatbuddy.group.mapper.GroupMemberMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,9 +25,6 @@ public class GroupService {
     private final GroupMapper groupMapper;
     private final GroupMemberMapper groupMemberMapper;
 
-    @Value("${app.group.default-image-url}")
-    private String defaultGroupImageUrl;
-
     public boolean checkGroupNameDuplicate(String groupName) {
         return groupMapper.existsByGroupName(groupName);
     }
@@ -38,22 +33,23 @@ public class GroupService {
         return groupMapper.existsByInviteCode(inviteCode.toUpperCase());
     }
 
-    @Transactional
-    public Long createGroup(GroupCreateRequest request, Long creatorId) {
-
+    public void validateCreateGroup(GroupCreateRequest request) {
         if (groupMapper.existsByGroupName(request.getGroupName())) {
+
             throw new ConflictException("이미 존재하는 그룹명입니다.");
         }
 
-        String inviteCode = request.getInviteCode().toUpperCase();
+        String invitecode = request.getInviteCode().toUpperCase();
 
-        if (groupMapper.existsByInviteCode(inviteCode)) {
-            throw new ConflictException("이미 사용 중인 초대 코드입니다.");
+        if (groupMapper.existsByInviteCode(invitecode)) {
+            throw new ConflictException("이미 사용 중인 초대 코드입니다");
         }
+    }
 
-        String groupImageUrl = request.getGroupImageUrl() != null
-                ? request.getGroupImageUrl()
-                : defaultGroupImageUrl;
+    @Transactional
+    public Long createGroup(GroupCreateRequest request, Long creatorId, String groupImageUrl) {
+
+        String inviteCode = request.getInviteCode().toUpperCase();
 
         Group group = Group.builder()
                 .groupName(request.getGroupName())

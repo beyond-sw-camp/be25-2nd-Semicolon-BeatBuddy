@@ -1,12 +1,14 @@
 package com.beyond.beatbuddy.group.controller;
 
 import com.beyond.beatbuddy.global.dto.ApiResponse;
+import com.beyond.beatbuddy.global.util.FileStorageService;
 import com.beyond.beatbuddy.global.util.JwtUtil;
 import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
 import com.beyond.beatbuddy.group.dto.GroupJoinRequest;
 import com.beyond.beatbuddy.group.dto.GroupResponse;
 import com.beyond.beatbuddy.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,7 +24,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -34,6 +38,7 @@ public class GroupController {
 
     private final GroupService groupService;
     private final JwtUtil jwtUtil;
+    private final FileStorageService fileStorageService;
 
     @Operation(summary = "그룹명 중복 확인")
     @GetMapping("/name-check")
@@ -57,14 +62,22 @@ public class GroupController {
     }
 
     @Operation(summary = "그룹 생성")
-    @PostMapping
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(mediaType = "multipart/form-data")
+    )
+    @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<Long>> createGroup(
-            @Valid @RequestBody GroupCreateRequest request,
+            @RequestPart("data") @Valid GroupCreateRequest request,
+            @RequestPart(value = "groupImage", required = false) MultipartFile groupImage,
             @RequestHeader("Authorization") String token) {
 
         Long creatorId = jwtUtil.getUserId(jwtUtil.substringToken(token));
 
-        Long groupId = groupService.createGroup(request, creatorId);
+        groupService.validateCreateGroup(request);
+
+        String groupImageUrl = fileStorageService.saveGroupImage(groupImage);
+
+        Long groupId = groupService.createGroup(request, creatorId, groupImageUrl);
 
         return ApiResponse.of(HttpStatus.CREATED, "그룹이 생성되었습니다.", groupId);
     }
