@@ -1,0 +1,5 @@
+<mapper namespace="com.beyond.beatbuddy.music.mapper.UserMapper">
+    <select id="findAll" resultType="com.beyond.beatbuddy.music.entity.Users">
+        SELECT nickname FROM users;
+    </select>
+</mapper>
