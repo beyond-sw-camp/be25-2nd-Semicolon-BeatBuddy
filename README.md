@@ -88,7 +88,7 @@
        ↕ HTTP / WebSocket
 [Spring Boot Backend]
        ↕ MyBatis
-[MySQL Database]
+[MariaDB Database]
        
 [외부 API]
 - Spotify API : 곡 검색, 앨범 커버
