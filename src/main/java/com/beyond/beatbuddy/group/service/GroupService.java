@@ -3,9 +3,9 @@ package com.beyond.beatbuddy.group.service;
 import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.global.exception.ConflictException;
 import com.beyond.beatbuddy.global.exception.NotFoundException;
-import com.beyond.beatbuddy.group.dto.GroupCreateRequest;
-import com.beyond.beatbuddy.group.dto.GroupJoinRequest;
-import com.beyond.beatbuddy.group.dto.GroupResponse;
+import com.beyond.beatbuddy.group.dto.request.GroupCreateRequest;
+import com.beyond.beatbuddy.group.dto.request.GroupJoinRequest;
+import com.beyond.beatbuddy.group.dto.response.GroupResponse;
 import com.beyond.beatbuddy.group.entity.Group;
 import com.beyond.beatbuddy.group.entity.GroupMember;
 import com.beyond.beatbuddy.group.mapper.GroupMapper;
@@ -57,10 +57,11 @@ public class GroupService {
                 .inviteCode(inviteCode)
                 .groupImageUrl(groupImageUrl)
                 .creatorId(creatorId)
-                .memberCount(1)
+                .memberCount(0)
                 .build();
 
         groupMapper.save(group);
+        groupMapper.updateMemberCount(group.getGroupId(), 1);
 
         GroupMember firstMember = GroupMember.builder()
                 .groupId(group.getGroupId())
@@ -150,9 +151,11 @@ public class GroupService {
 
         groupMemberMapper.deleteByGroupIdAndUserId(groupId, userId);
 
-        groupMapper.updateMemberCount(groupId, group.getMemberCount() -1);
+        int updatedCount = group.getMemberCount() - 1;
 
-        if (group.getMemberCount() - 1 == 0) {
+        groupMapper.updateMemberCount(groupId, updatedCount);
+
+        if (updatedCount == 0) {
             groupMapper.deleteById(groupId);
         }
     }

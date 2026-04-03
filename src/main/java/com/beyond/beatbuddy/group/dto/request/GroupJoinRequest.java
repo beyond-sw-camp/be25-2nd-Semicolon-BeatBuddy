@@ -1,4 +1,4 @@
-package com.beyond.beatbuddy.group.dto;
+package com.beyond.beatbuddy.group.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
