@@ -30,7 +30,7 @@ public class GroupService {
     }
 
     public boolean checkInviteCodeDuplicate(String inviteCode) {
-        return groupMapper.existsByInviteCode(inviteCode.toUpperCase());
+        return groupMapper.existsByInviteCode(inviteCode);
     }
 
     public void validateCreateGroup(GroupCreateRequest request) {
@@ -39,7 +39,7 @@ public class GroupService {
             throw new ConflictException("이미 존재하는 그룹명입니다.");
         }
 
-        String invitecode = request.getInviteCode().toUpperCase();
+        String invitecode = request.getInviteCode();
 
         if (groupMapper.existsByInviteCode(invitecode)) {
             throw new ConflictException("이미 사용 중인 초대 코드입니다");
@@ -49,7 +49,7 @@ public class GroupService {
     @Transactional
     public Long createGroup(GroupCreateRequest request, Long creatorId, String groupImageUrl) {
 
-        String inviteCode = request.getInviteCode().toUpperCase();
+        String inviteCode = request.getInviteCode();
 
         Group group = Group.builder()
                 .groupName(request.getGroupName())
@@ -100,7 +100,7 @@ public class GroupService {
         Group group = groupMapper.findById(groupId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다."));
 
-        if (!group.getInviteCode().equals(request.getInviteCode().toUpperCase())) {
+        if (!group.getInviteCode().equals(request.getInviteCode())) {
             throw new BadRequestException("초대코드가 올바르지 않습니다.");
         }
 

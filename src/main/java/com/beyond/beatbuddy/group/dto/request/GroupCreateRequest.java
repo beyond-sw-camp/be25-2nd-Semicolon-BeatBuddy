@@ -22,8 +22,8 @@ public class GroupCreateRequest {
     @NotBlank(message = "초대 코드는 필수입니다.")
     @Size(max = 20, message = "초대 코드는 최대 20자까지 가능합니다.")
     @Pattern(
-            regexp = "^[a-zA-Z0-9]+$",
-            message = "초대코드는 영문 대소문자와 숫자만 가능합니다."
+            regexp = "^[A-Z0-9]+$",
+            message = "초대코드는 영문 대문자와 숫자만 가능합니다."
     )
     private String inviteCode;
 
