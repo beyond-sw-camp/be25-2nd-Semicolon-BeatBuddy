@@ -37,9 +37,9 @@ public class AuthService {
 
 	public TokenResponse signUp(SignupRequest request, MultipartFile profileImage) {
 		// 1. 이메일 인증 확인
-		/*if (!redisService.isEmailVerified(request.getEmail())) {
+		if (!redisService.isEmailVerified(request.getEmail())) {
 			throw new UnauthorizedException("이메일 인증이 필요합니다.");
-		}*/
+		}
 
 		// 2. 이메일 중복 확인
 		if (userMapper.existsByEmail(request.getEmail())) {
@@ -67,7 +67,7 @@ public class AuthService {
 		userMapper.save(user);
 
 		// 6. verified 삭제
-		//redisService.deleteVerified(request.getEmail());
+		redisService.deleteVerified(request.getEmail());
 
 		// 7. 토큰 발급
 		String accessToken = jwtUtil.generateAccessToken(

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.beyond.beatbuddy.music.mapper.MusicMapper">
+
+    <insert id="insertAlbumIgnore">
+        INSERT IGNORE INTO albums (album_id, album_name, album_cover_url)
+        VALUES (#{albumId}, #{albumName}, #{coverUrl})
+    </insert>
+
+    <insert id="insertMusicFeaturesIgnore">
+        INSERT IGNORE INTO music_features (
+            music_id, album_id, track_name, artist_name,
+            popularity, energy, danceability, happiness,
+            acousticness, instrumentalness, liveness, speechiness
+        ) VALUES (
+        #{track.trackId}, #{track.albumId}, #{track.trackName}, #{track.artistName},
+        #{features.popularity}, #{features.energy}, #{features.danceability}, #{features.happiness},
+        #{features.acousticness}, #{features.instrumentalness}, #{features.liveness}, #{features.speechiness}
+        )
+    </insert>
+
+    <delete id="deleteUserFavMusic">
+        DELETE FROM user_fav_music
+        WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertUserFavMusic">
+        INSERT INTO user_fav_music (user_id, music_id)
+        VALUES (#{userId}, #{musicId})
+    </insert>
+
+    <insert id="upsertUserProfile">
+        INSERT INTO user_profiles (user_id, taste_vector)
+        VALUES (#{userId}, VEC_FromText(#{tasteVector}))
+            ON DUPLICATE KEY UPDATE
+                                 taste_vector = VEC_FromText(#{tasteVector}),
+                                 updated_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <update id="updateIsTasteAnalyzed">
+        UPDATE users
+        SET is_taste_analyzed = TRUE
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>

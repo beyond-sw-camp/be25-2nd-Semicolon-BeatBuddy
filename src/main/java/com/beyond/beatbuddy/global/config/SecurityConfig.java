@@ -62,8 +62,8 @@ public class SecurityConfig {
 								"/images/groups/**",
 								"/swagger-ui/**",
 								"/v3/api-docs/**",
-								"/ws/chat/**"
-
+								"/ws/chat/**",
+								"/api/v1/music/justfortest"
 						).permitAll()
 						// 나머지는 인증 필요
 						.anyRequest().authenticated()
