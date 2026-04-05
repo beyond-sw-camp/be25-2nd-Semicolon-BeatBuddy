@@ -13,9 +13,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Notification {
     private Long notificationId;
-    private Long userId;
-    private String content;
-    private String type; // FRIEND_REQUEST | CHAT | SOCIAL | SYSTEM
+    private Long userId; // 알림 수신자
+    private Long senderId; // 알림 발신자
+    private String type; // FRIEND_REQUEST | FRIEND_ACCEPT | TOTAL_SYSTEM
+    private Long targetId; // room_id 또는 group_id (선택)
+    private String message;
     private boolean isRead;
     private LocalDateTime createdAt;
 }

@@ -5,19 +5,24 @@ import com.beyond.beatbuddy.friend.dto.FriendRequest;
 import com.beyond.beatbuddy.friend.dto.FriendResponse;
 import com.beyond.beatbuddy.friend.entity.Friendship;
 import com.beyond.beatbuddy.friend.mapper.FriendMapper;
+import com.beyond.beatbuddy.global.exception.BadRequestException;
+import com.beyond.beatbuddy.global.exception.ConflictException;
+import com.beyond.beatbuddy.global.exception.ForbiddenException;
+import com.beyond.beatbuddy.global.exception.NotFoundException;
+import com.beyond.beatbuddy.notification.entity.Notification;
+import com.beyond.beatbuddy.notification.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class FriendService {
 
     private final FriendMapper friendMapper;
+    private final NotificationMapper notificationMapper;
 
     /**
      * 친구 요청 보내기
@@ -30,15 +35,15 @@ public class FriendService {
         Long receiverId = dto.getReceiverId();
 
         if (requesterId.equals(receiverId)) {
-            throw new IllegalArgumentException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
+            throw new BadRequestException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
         }
 
         if (friendMapper.findPendingRequest(requesterId, receiverId) != null) {
-            throw new DuplicateKeyException("이미 처리 중인 친구 요청이 존재합니다.");
+            throw new ConflictException("이미 처리 중인 친구 요청이 존재합니다.");
         }
 
         if (friendMapper.findAcceptedFriendship(requesterId, receiverId) != null) {
-            throw new DuplicateKeyException("이미 친구 관계입니다.");
+            throw new ConflictException("이미 친구 관계입니다.");
         }
 
         Friendship friendship = Friendship.builder()
@@ -46,6 +51,15 @@ public class FriendService {
                 .receiverId(receiverId)
                 .build();
         friendMapper.insertRequest(friendship);
+
+        // FRIEND_001: 수신자(receiverId)에게 '친구 요청이 도착했다'는 알림 발송
+        Notification notification = Notification.builder()
+                .userId(receiverId) // 알림 수신자 = 친구 요청 받는 사람
+                .senderId(requesterId) // 알림 발신자 = 핑 날린 사람
+                .type("FRIEND_REQUEST")
+                .message("새로운 친구 요청이 도착했습니다.")
+                .build();
+        notificationMapper.insertNotification(notification);
     }
 
     /**
@@ -57,13 +71,26 @@ public class FriendService {
         Friendship friendship = getFriendshipOrThrow(friendshipId);
 
         if (!friendship.getReceiverId().equals(myUserId)) {
-            throw new IllegalArgumentException("해당 요청을 수락할 권한이 없습니다.");
+            throw new ForbiddenException("해당 리소스에 접근할 권한이 없습니다.");
         }
         if (!"PENDING".equals(friendship.getStatus())) {
-            throw new IllegalStateException("수락할 수 없는 상태의 요청입니다.");
+            throw new BadRequestException("수락할 수 없는 상태의 요청입니다.");
         }
 
         friendMapper.updateStatus(friendshipId, "ACCEPTED");
+
+        // 본인(myUserId)에게 도착했던 친구 요청(FRIEND_REQUEST) 알림 삭제 처리
+        notificationMapper.deleteRequest(myUserId, friendship.getRequesterId(), "FRIEND_REQUEST");
+
+        // FRIEND_003: 요청자(requesterId)에게 수락 알림 발송
+
+        Notification notification = Notification.builder()
+                .userId(friendship.getRequesterId()) // 알림 수신자 = 친구 요청을 보낸 사람
+                .senderId(myUserId) // 알림 발신자 = 수락한 사람
+                .type("FRIEND_ACCEPT")
+                .message("친구 요청을 수락했습니다.")
+                .build();
+        notificationMapper.insertNotification(notification);
     }
 
     /**
@@ -76,13 +103,16 @@ public class FriendService {
         Friendship friendship = getFriendshipOrThrow(friendshipId);
 
         if (!friendship.getReceiverId().equals(myUserId)) {
-            throw new IllegalArgumentException("해당 요청을 거절할 권한이 없습니다.");
+            throw new ForbiddenException("해당 리소스에 접근할 권한이 없습니다.");
         }
         if (!"PENDING".equals(friendship.getStatus())) {
-            throw new IllegalStateException("거절할 수 없는 상태의 요청입니다.");
+            throw new BadRequestException("거절할 수 없는 상태의 요청입니다.");
         }
 
         friendMapper.deleteFriend(friendshipId);
+
+        // 본인(myUserId)에게 도착했던 친구 요청(FRIEND_REQUEST) 알림 삭제 처리
+        notificationMapper.deleteRequest(myUserId, friendship.getRequesterId(), "FRIEND_REQUEST");
     }
 
     /**
@@ -95,19 +125,32 @@ public class FriendService {
 
     /**
      * 친구 상세 정보 조회
+     * - 상호 ACCEPTED 상태인 친구만 조회 가능 (403)
+     * - 해당 유저/친구 관계 미존재 시 (404)
      */
     @Transactional(readOnly = true)
     public FriendDetailResponse getFriendDetail(Long myUserId, Long friendId) {
+        // 상호 수락된 친구인지 먼저 확인
+        if (friendMapper.findAcceptedFriendship(myUserId, friendId) == null) {
+            // 유저 자체가 없는지(404) vs 친구이지만 ACCEPTED 아닌지(403) 구분
+            FriendDetailResponse detail = friendMapper.findFriendDetail(myUserId, friendId);
+            if (detail == null) {
+                throw new NotFoundException("요청하신 자원을 찾을 수 없습니다.");
+            }
+            throw new ForbiddenException("해당 리소스에 접근할 권한이 없습니다.");
+        }
+
         FriendDetailResponse detail = friendMapper.findFriendDetail(myUserId, friendId);
         if (detail == null) {
-            throw new NoSuchElementException("친구 정보를 찾을 수 없습니다.");
+            throw new NotFoundException("요청하신 자원을 찾을 수 없습니다.");
         }
         return detail;
     }
 
     /**
-     * 친구 삭제 (차단)
-     * - 나와 관련된 friendship만 삭제 가능
+     * 친구 삭제
+     * - 나와 관련된 ACCEPTED friendship만 삭제 가능
+     * - 없거나 친구 아닌 경우 404
      */
     @Transactional
     public void deleteFriend(Long myUserId, Long friendshipId) {
@@ -116,7 +159,11 @@ public class FriendService {
         boolean isParticipant = friendship.getRequesterId().equals(myUserId)
                 || friendship.getReceiverId().equals(myUserId);
         if (!isParticipant) {
-            throw new IllegalArgumentException("해당 친구 관계를 삭제할 권한이 없습니다.");
+            throw new ForbiddenException("해당 리소스에 접근할 권한이 없습니다.");
+        }
+
+        if (!"ACCEPTED".equals(friendship.getStatus())) {
+            throw new NotFoundException("요청하신 자원을 찾을 수 없습니다.");
         }
 
         friendMapper.deleteFriend(friendshipId);
@@ -125,7 +172,7 @@ public class FriendService {
     private Friendship getFriendshipOrThrow(Long friendshipId) {
         Friendship friendship = friendMapper.findById(friendshipId);
         if (friendship == null) {
-            throw new NoSuchElementException("해당 친구 요청을 찾을 수 없습니다.");
+            throw new NotFoundException("요청하신 자원을 찾을 수 없습니다.");
         }
         return friendship;
     }

@@ -1,18 +1,39 @@
 package com.beyond.beatbuddy.notification.service;
 
+import com.beyond.beatbuddy.global.exception.ForbiddenException;
+import com.beyond.beatbuddy.global.exception.NotFoundException;
+import com.beyond.beatbuddy.notification.dto.NotificationResponse;
 import com.beyond.beatbuddy.notification.entity.Notification;
 import com.beyond.beatbuddy.notification.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.NoSuchElementException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationMapper notificationMapper;
+
+    /**
+     * 알림 목록 조회 (NOTI_002)
+     * - 본인에게 온 알림만 조회 가능 (최신순)
+     */
+    public List<NotificationResponse> getMyNotifications(Long myUserId) {
+        return notificationMapper.findAllByUserId(myUserId).stream()
+                .map(n -> NotificationResponse.builder()
+                        .notificationId(n.getNotificationId())
+                        .senderId(n.getSenderId())
+                        .type(n.getType())
+                        .message(n.getMessage())
+                        .isRead(n.isRead())
+                        .createdAt(n.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
     /**
      * 알림 읽음 처리 (NOTI_001)
@@ -24,12 +45,29 @@ public class NotificationService {
         Notification notification = notificationMapper.findById(notificationId);
 
         if (notification == null) {
-            throw new NoSuchElementException("해당 알림을 찾을 수 없습니다.");
+            throw new NotFoundException("요청하신 자원을 찾을 수 없습니다.");
         }
         if (!notification.getUserId().equals(myUserId)) {
-            throw new IllegalArgumentException("해당 알림에 접근할 권한이 없습니다.");
+            throw new ForbiddenException("해당 리소스에 접근할 권한이 없습니다.");
         }
 
         notificationMapper.markAsRead(notificationId);
+    }
+
+    /**
+     * 알림 단일 삭제 (NOTI_003)
+     */
+    @Transactional
+    public void deleteNotification(Long myUserId, Long notificationId) {
+        Notification notification = notificationMapper.findById(notificationId);
+
+        if (notification == null) {
+            throw new NotFoundException("요청하신 자원을 찾을 수 없습니다.");
+        }
+        if (!notification.getUserId().equals(myUserId)) {
+            throw new ForbiddenException("해당 리소스에 접근할 권한이 없습니다.");
+        }
+
+        notificationMapper.deleteNotification(notificationId);
     }
 }

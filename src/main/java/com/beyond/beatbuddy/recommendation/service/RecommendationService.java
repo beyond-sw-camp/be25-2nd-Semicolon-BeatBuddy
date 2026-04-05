@@ -1,5 +1,6 @@
 package com.beyond.beatbuddy.recommendation.service;
 
+import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto;
 import com.beyond.beatbuddy.friend.entity.ViewedProfile;
 import com.beyond.beatbuddy.recommendation.mapper.RecommendationMapper;
@@ -20,6 +21,9 @@ public class RecommendationService {
      */
     @Transactional(readOnly = true)
     public List<RecommendationResponseDto> getRecommendations(Long myUserId, Long groupId) {
+        if (!recommendationMapper.existsUserProfile(myUserId)) {
+            throw new BadRequestException("음악 취향 분석을 먼저 완료해주세요.");
+        }
         return recommendationMapper.findRecommendations(myUserId, groupId);
     }
 

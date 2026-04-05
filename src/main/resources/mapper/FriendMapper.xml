@@ -75,29 +75,40 @@
         <result property="profileImageUrl" column="profile_image_url"/>
         <result property="gender" column="gender"/>
         <result property="birthYear" column="birth_year"/>
-        <collection property="favMusicIds" ofType="String" column="friend_id"
-                    select="selectFavMusicIdsByUserId"/>
+        <result property="roomId" column="room_id"/>
+        <collection property="favoriteMusicList"
+                    ofType="com.beyond.beatbuddy.friend.dto.FriendDetailResponse$FavoriteMusicItem">
+            <id     property="musicId"       column="music_id"/>
+            <result property="trackName"     column="track_name"/>
+            <result property="artistName"    column="artist_name"/>
+            <result property="albumCoverUrl" column="album_cover_url"/>
+        </collection>
     </resultMap>
 
     <select id="findFriendDetail" resultMap="FriendDetailResultMap">
         SELECT
-            u.user_id         AS friend_id,
+            u.user_id            AS friend_id,
             u.nickname,
             u.profile_image_url,
             u.gender,
-            u.birth_year
+            u.birth_year,
+            u.room_id,
+            mf.music_id,
+            mf.track_name,
+            mf.artist_name,
+            al.album_cover_url
         FROM users u
         JOIN friendships f ON (
             (f.requester_id = #{myUserId} AND f.receiver_id = u.user_id)
          OR (f.receiver_id  = #{myUserId} AND f.requester_id = u.user_id)
         )
+        LEFT JOIN user_fav_music ufm ON ufm.user_id = u.user_id
+        LEFT JOIN music_features mf  ON mf.music_id  = ufm.music_id
+        LEFT JOIN albums al          ON al.album_id   = mf.album_id
         WHERE u.user_id = #{friendId}
           AND f.status = 'ACCEPTED'
     </select>
 
-    <!-- 최애곡 ID 목록 서브쿼리 (collection 용) -->
-    <select id="selectFavMusicIdsByUserId" resultType="String">
-        SELECT music_id FROM user_fav_music WHERE user_id = #{friend_id}
-    </select>
-
 </mapper>
+
+

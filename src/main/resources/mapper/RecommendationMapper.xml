@@ -3,6 +3,13 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.beyond.beatbuddy.recommendation.mapper.RecommendationMapper">
 
+    <!-- 내 user_profiles 존재 여부 확인 -->
+    <select id="existsUserProfile" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM user_profiles
+        WHERE user_id = #{userId}
+    </select>
+
     <!-- 스킵(열람) 이력 저장 -->
     <insert id="insertViewedProfile">
         INSERT IGNORE INTO viewed_profiles (viewer_id, viewed_id)
