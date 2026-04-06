@@ -5,8 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class UserNotificationSettingResponseDto {
-    private final int code = 200;
+public class UserNotificationSettingResponse {
     private Boolean allowPushChat;
     private Boolean allowPushSocial;
 }

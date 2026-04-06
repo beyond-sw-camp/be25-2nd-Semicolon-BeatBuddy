@@ -1,17 +1,21 @@
 package com.beyond.beatbuddy.user.service;
 
-import com.beyond.beatbuddy.global.exception.CustomException;
-import com.beyond.beatbuddy.global.exception.ErrorCode;
-import com.beyond.beatbuddy.user.dto.request.UpdateChatNotificationRequestDto;
-import com.beyond.beatbuddy.user.dto.request.UpdateSocialNotificationRequestDto;
-import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponseDto;
-import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponseDto;
-import com.beyond.beatbuddy.user.dto.response.UserProfileResponseDto;
-import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequestDto;
-import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequestDto;
-import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequestDto;
-import com.beyond.beatbuddy.user.entity.User;
-import com.beyond.beatbuddy.user.mapper.UserMapper;
+import com.beyond.beatbuddy.global.entity.User;
+import com.beyond.beatbuddy.global.exception.BadRequestException;
+import com.beyond.beatbuddy.global.exception.ConflictException;
+import com.beyond.beatbuddy.global.exception.NotFoundException;
+import com.beyond.beatbuddy.global.exception.UnauthorizedException;
+import com.beyond.beatbuddy.global.util.JwtUtil;
+import com.beyond.beatbuddy.global.util.RedisService;
+import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequest;
+import com.beyond.beatbuddy.user.dto.request.UpdateChatNotificationRequest;
+import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequest;
+import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
+import com.beyond.beatbuddy.user.dto.request.UpdateSocialNotificationRequest;
+import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponse;
+import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponse;
+import com.beyond.beatbuddy.user.dto.response.UserProfileResponse;
+import com.beyond.beatbuddy.user.mapper.MyPageMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,97 +24,109 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserMapper userMapper;
+    private final MyPageMapper myPageMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final RedisService redisService;
 
     @Override
-    public UserProfileResponseDto getMyProfile(String email) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        return new UserProfileResponseDto(user);
+    public UserProfileResponse getMyProfile(String email) {
+        User user = getActiveUserByEmail(email);
+        return new UserProfileResponse(user);
     }
 
     @Override
-    public UserNotificationSettingResponseDto getMyNotificationSetting(String email) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        return userMapper.selectNotificationSetting(user.getUserId());
+    public UserNotificationSettingResponse getMyNotificationSetting(String email) {
+        User user = getActiveUserByEmail(email);
+        return myPageMapper.selectNotificationSetting(user.getUserId());
     }
 
     @Override
-    public void updateChatNotificationSetting(String email, UpdateChatNotificationRequestDto request) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        userMapper.updateChatNotificationSetting(user.getUserId(), request.getAllowPushChat());
+    public void updateChatNotificationSetting(String email, UpdateChatNotificationRequest request) {
+        User user = getActiveUserByEmail(email);
+        myPageMapper.updateChatNotificationSetting(user.getUserId(), request.getAllowPushChat());
     }
 
     @Override
-    public void updateSocialNotificationSetting(String email, UpdateSocialNotificationRequestDto request) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        userMapper.updateSocialNotificationSetting(user.getUserId(), request.getAllowPushSocial());
+    public void updateSocialNotificationSetting(String email, UpdateSocialNotificationRequest request) {
+        User user = getActiveUserByEmail(email);
+        myPageMapper.updateSocialNotificationSetting(user.getUserId(), request.getAllowPushSocial());
     }
 
     @Override
-    public UserGroupNicknameListResponseDto getMyGroupNicknames(String email) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        // Reuse the authenticated user's primary key to query group-specific nicknames.
-        return new UserGroupNicknameListResponseDto(
-                userMapper.selectMyGroupNicknames(user.getUserId())
-        );
+    public UserGroupNicknameListResponse getMyGroupNicknames(String email) {
+        User user = getActiveUserByEmail(email);
+        return new UserGroupNicknameListResponse(myPageMapper.selectMyGroupNicknames(user.getUserId()));
     }
 
     @Override
-    public void changePassword(String email, ChangePasswordRequestDto request) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = getActiveUserByEmail(email);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new CustomException(ErrorCode.PASSWORD_NOT_MATCH);
+            throw new UnauthorizedException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        String encoded = passwordEncoder.encode(request.getNewPassword());
-        userMapper.updatePassword(user.getUserId(), encoded);
+        if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+            throw new BadRequestException("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new ConflictException("현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        myPageMapper.updatePassword(user.getUserId(), encodedPassword);
     }
 
     @Override
-    public void updateGroupNickname(String email, Long groupId, UpdateGroupNicknameRequestDto request) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public void updateGroupNickname(String email, Long groupId, UpdateGroupNicknameRequest request) {
+        User user = getActiveUserByEmail(email);
 
-        // A group nickname must stay unique inside the same group, excluding the current user.
-        int duplicateCount = userMapper.countDuplicateGroupNickname(
-                groupId, user.getUserId(), request.getGroupNickname()
+        int duplicateCount = myPageMapper.countDuplicateGroupNickname(
+                groupId,
+                user.getUserId(),
+                request.getGroupNickname()
         );
+
         if (duplicateCount > 0) {
-            throw new CustomException(ErrorCode.DUPLICATE_GROUP_NICKNAME);
+            throw new ConflictException("이미 사용 중인 그룹 닉네임입니다.");
         }
 
-        // If no row is updated, the user does not belong to that group.
-        int updatedRows = userMapper.updateGroupNickname(
-                user.getUserId(), groupId, request.getGroupNickname()
+        int updatedRows = myPageMapper.updateGroupNickname(
+                user.getUserId(),
+                groupId,
+                request.getGroupNickname()
         );
+
         if (updatedRows == 0) {
-            throw new CustomException(ErrorCode.GROUP_MEMBER_NOT_FOUND);
+            throw new NotFoundException("해당 그룹 멤버 정보를 찾을 수 없습니다.");
         }
     }
 
     @Override
-    public void updateProfileImage(String email, UpdateProfileImageRequestDto request) {
-        // Resolve the authenticated user first, then update only that user's profile image path.
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        userMapper.updateProfileImage(user.getUserId(), request.getProfileImageUrl());
+    public void updateProfileImage(String email, UpdateProfileImageRequest request) {
+        User user = getActiveUserByEmail(email);
+        myPageMapper.updateProfileImage(user.getUserId(), request.getProfileImageUrl());
     }
 
     @Override
-    public void withdraw(String email) {
-        User user = userMapper.selectUserByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public void withdraw(String email, String bearerToken) {
+        User user = getActiveUserByEmail(email);
 
-        userMapper.withdrawUser(user.getUserId());
+        myPageMapper.withdrawUser(user.getUserId());
+        redisService.deleteRefreshToken(user.getUserId());
+
+        String accessToken = jwtUtil.substringToken(bearerToken);
+        long expiration = jwtUtil.getExpiration(accessToken);
+
+        if (expiration > 0) {
+            redisService.addBlacklist(accessToken, expiration);
+        }
+    }
+
+    private User getActiveUserByEmail(String email) {
+        return myPageMapper.selectUserByEmail(email)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
     }
 }

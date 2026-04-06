@@ -1,10 +1,10 @@
 package com.beyond.beatbuddy.user.dto.response;
 
-import com.beyond.beatbuddy.user.entity.User;
+import com.beyond.beatbuddy.global.entity.User;
 import lombok.Getter;
 
 @Getter
-public class UserProfileResponseDto {
+public class UserProfileResponse {
     private final Long userId;
     private final String email;
     private final String nickname;
@@ -12,7 +12,7 @@ public class UserProfileResponseDto {
     private final Integer birthYear;
     private final String profileImageUrl;
 
-    public UserProfileResponseDto(User user) {
+    public UserProfileResponse(User user) {
         this.userId = user.getUserId();
         this.email = user.getEmail();
         this.nickname = user.getNickname();

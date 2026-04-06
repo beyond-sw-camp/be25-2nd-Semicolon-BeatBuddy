@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class UserGroupNicknameItemResponseDto {
+public class UserGroupNicknameItemResponse {
     private Long groupId;
     private String groupName;
     private String groupImageUrl;

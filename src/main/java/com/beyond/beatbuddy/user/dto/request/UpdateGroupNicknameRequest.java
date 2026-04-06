@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class UpdateGroupNicknameRequestDto {
+public class UpdateGroupNicknameRequest {
 
     @NotBlank(message = "그룹 닉네임을 입력해주세요.")
     private String groupNickname;

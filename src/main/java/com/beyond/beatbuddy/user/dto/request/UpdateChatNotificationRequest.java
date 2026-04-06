@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class UpdateChatNotificationRequestDto {
-    @NotNull(message = "allowPushChat is required.")
+public class UpdateChatNotificationRequest {
+
+    @NotNull(message = "채팅 알림 설정값은 필수입니다.")
     private Boolean allowPushChat;
 }
