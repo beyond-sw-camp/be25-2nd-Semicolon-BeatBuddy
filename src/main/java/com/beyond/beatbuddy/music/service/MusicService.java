@@ -1,5 +1,6 @@
 package com.beyond.beatbuddy.music.service;
 
+import com.beyond.beatbuddy.auth.mapper.UserMapper;
 import com.beyond.beatbuddy.music.dto.response.TasteResponse;
 import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.global.exception.BusinessException;
@@ -38,6 +39,7 @@ public class MusicService {
 
 	private final MusicMapper musicMapper;                     // DB 쿼리 담당 인터페이스
 	private final TrackAnalysisService trackAnalysisService;   // RapidAPI 호출 담당
+	private final UserMapper userMapper;
 
 	@Value("${rapidapi.track-analysis-host}")
 	private String trackAnalysisHost;                          // application-secret.yml에서 주입
@@ -273,7 +275,10 @@ public class MusicService {
 		List<TasteResponse.TrackInfo> tracks =
 				musicMapper.findTasteTracksByUserId(userId);
 
+		Boolean isTasteAnalyzed = userMapper.findIsTasteAnalyzedByUserId(userId);
+
 		return TasteResponse.builder()
+				.isTasteAnalyzed(isTasteAnalyzed)
 				.tracks(tracks)
 				.build();
 	}

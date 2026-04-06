@@ -62,4 +62,10 @@
         WHERE user_id = #{userId}
     </update>
 
+    <select id="findIsTasteAnalyzedByUserId" resultType="boolean">
+        SELECT is_taste_analyzed
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+
 </mapper>

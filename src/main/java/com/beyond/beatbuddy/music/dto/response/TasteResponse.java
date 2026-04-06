@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TasteResponse {
 
+    private Boolean isTasteAnalyzed;
     private List<TrackInfo> tracks;
 
     @Data
