@@ -11,6 +11,15 @@
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
+    <resultMap id="ChatMessageResponseMap" type="com.beyond.beatbuddy.chat.dto.response.ChatMessageResponse">
+        <result property="messageId" column="message_id"/>
+        <result property="senderId" column="sender_id"/>
+        <result property="senderNickname" column="sender_nickname"/>
+        <result property="messageText" column="message_text"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="isRead" column="unread_marker"/>
+    </resultMap>
+
     <insert id="insertMessage" useGeneratedKeys="true" keyProperty="messageId">
         INSERT INTO chat_messages (room_id, sender_id, message_text, created_at)
         VALUES (#{roomId}, #{senderId}, #{messageText}, NOW())
@@ -32,10 +41,25 @@
           AND is_exited = FALSE
     </update>
 
-    <select id="findById" resultMap="ChatMessageResultMap">
-        SELECT message_id, room_id, sender_id, message_text, created_at
-        FROM chat_messages
-        WHERE message_id = #{messageId}
+    <select id="findById" resultMap="ChatMessageResponseMap">
+        SELECT
+            m.message_id,
+            m.sender_id,
+            u.nickname AS sender_nickname,
+            m.message_text,
+            m.created_at
+        FROM chat_messages m
+                 JOIN users u ON u.user_id = m.sender_id
+        WHERE m.message_id = #{messageId}
+    </select>
+
+    <select id="findReceiverIdByRoomId" resultType="Long">
+        SELECT CASE
+            WHEN user_a_id = #{senderId} THEN user_b_id
+            ELSE user_a_id
+        END
+        FROM chat_rooms
+        WHERE room_id = #{roomId}
     </select>
 
 </mapper>

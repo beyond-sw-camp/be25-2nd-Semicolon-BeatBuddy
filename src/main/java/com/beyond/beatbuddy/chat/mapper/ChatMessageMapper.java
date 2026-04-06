@@ -28,8 +28,10 @@ public interface ChatMessageMapper {
     void incrementUnreadCount(@Param("roomId") Long roomId,
                               @Param("senderId") Long senderId);
 
+    // receiverId 추출
+    Long findReceiverIdByRoomId(@Param("roomId") Long roomId,
+                                @Param("senderId") Long senderId);
+
     // 전송한 메시지 반환
-    ChatMessage findById(@Param("messageId") Long messageId);
-
-
+    ChatMessageResponse findById(@Param("messageId") Long messageId);
 }

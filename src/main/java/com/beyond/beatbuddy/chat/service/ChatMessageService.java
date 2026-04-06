@@ -1,8 +1,10 @@
 package com.beyond.beatbuddy.chat.service;
 
+import com.beyond.beatbuddy.chat.dto.response.ChatMessageResponse;
 import com.beyond.beatbuddy.chat.entity.ChatMessage;
 import com.beyond.beatbuddy.chat.mapper.ChatMessageMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,7 +15,7 @@ public class ChatMessageService {
 
     private final ChatMessageMapper chatMessageMapper;
 
-    public ChatMessage sendMessage(Long roomId, Long senderId, String messageText) {
+    public ChatMessageResponse sendMessage(Long roomId, Long senderId, String messageText) {
 
         // 1. 메시지 저장
         ChatMessage chatMessage = new ChatMessage();
@@ -29,6 +31,8 @@ public class ChatMessageService {
         chatMessageMapper.incrementUnreadCount(roomId, senderId);
 
         // 4. 저장된 메시지 반환
-        return chatMessageMapper.findById(chatMessage.getMessageId());
+        ChatMessageResponse response = chatMessageMapper.findById(chatMessage.getMessageId());
+        response.setIsRead(false);
+        return response;
     }
 }

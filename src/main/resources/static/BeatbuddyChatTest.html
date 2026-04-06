@@ -191,12 +191,13 @@
 </div>
 
 <script>
-    const BASE_URL = 'http://localhost:8088';
+    const BASE_URL = 'http://localhost:8080';
     let accessToken = null;
     let loginUserId = null;
     let loginNickname = null;
     let stompClient = null;
     let subscription = null;
+    let eventSubscription = null;
     let currentRoomId = null;
 
     async function login() {
@@ -238,8 +239,6 @@
         document.getElementById('current-user-label').textContent = `${loginNickname} (ID: ${loginUserId})`;
         connectWebSocket();
         loadRoomList();
-        // 3초마다 목록 갱신
-        setInterval(loadRoomList, 3000);
     }
 
     function connectWebSocket() {
@@ -248,9 +247,47 @@
         stompClient.debug = null;
         stompClient.connect(
             { Authorization: `Bearer ${accessToken}` },
-            function() { setConnectionStatus(true); },
+            function() {
+                setConnectionStatus(true);
+                subscribeEventChannel();
+            },
             function() { setConnectionStatus(false); }
         );
+    }
+
+    function subscribeEventChannel() {
+        eventSubscription = stompClient.subscribe(`/sub/events/${loginUserId}`, function(msg) {
+            const event = JSON.parse(msg.body);
+            console.log('이벤트 수신:', event);
+            handleEvent(event);
+        });
+    }
+
+    function handleEvent(event) {
+        switch(event.type) {
+            case 'NEW_MESSAGE':
+                loadRoomList();
+                // 현재 채팅방에서 온 메시지면 입력창 열기 (상대방 재입장 시)
+                if (currentRoomId === event.roomId) {
+                    setInputDisabled(false);
+                }
+                break;
+
+            case 'MESSAGE_READ':
+                // "1" 제거
+                if (currentRoomId === event.roomId) {
+                    document.querySelectorAll('.msg-unread').forEach(el => el.remove());
+                }
+                loadRoomList();
+                break;
+
+            case 'OPPONENT_EXITED':
+                if (currentRoomId === event.roomId) {
+                    setInputDisabled(true);
+                }
+                loadRoomList();
+                break;
+        }
     }
 
     async function loadRoomList() {
@@ -293,7 +330,6 @@
             `;
         }).join('');
 
-        // active 상태 유지
         if (currentRoomId) {
             const activeEl = document.getElementById(`room-${currentRoomId}`);
             if (activeEl) activeEl.classList.add('active');
@@ -320,8 +356,13 @@
         if (subscription) subscription.unsubscribe();
         subscription = stompClient.subscribe(`/sub/chat/rooms/${roomId}`, function(msg) {
             const body = JSON.parse(msg.body);
+            console.log('메시지 수신:', body);  // 여기!
             appendMessage(body);
-            loadRoomList();
+
+            // 상대방 메시지면 읽음처리
+            if (body.senderId !== loginUserId) {
+                stompClient.send('/pub/chat/read', {}, JSON.stringify({ roomId: currentRoomId }));
+            }
         });
 
         try {
@@ -331,16 +372,23 @@
             const data = await res.json();
             renderMessages(data.result?.messages || []);
 
+            // 채팅방 목록 unread 갱신
+            loadRoomList();
+
             if (data.result?.opponentExited) {
-                document.getElementById('message-input').disabled = true;
-                document.getElementById('message-input').placeholder = '상대방이 채팅방을 나갔습니다.';
-                document.getElementById('send-btn').disabled = true;
+                setInputDisabled(true);
             } else {
-                document.getElementById('message-input').disabled = false;
-                document.getElementById('message-input').placeholder = '메시지를 입력하세요...';
-                document.getElementById('send-btn').disabled = false;
+                setInputDisabled(false);
             }
         } catch(e) { console.error('메시지 조회 실패', e); }
+    }
+
+    function setInputDisabled(disabled) {
+        document.getElementById('message-input').disabled = disabled;
+        document.getElementById('message-input').placeholder = disabled
+            ? '상대방이 채팅방을 나갔습니다.'
+            : '메시지를 입력하세요...';
+        document.getElementById('send-btn').disabled = disabled;
     }
 
     function renderMessages(messages) {
@@ -356,6 +404,7 @@
         const time = formatTime(msg.createdAt);
         const div = document.createElement('div');
         div.className = `msg-row ${isMe ? 'me' : 'other'}`;
+        div.dataset.messageId = msg.messageId;
         div.innerHTML = `
             ${!isMe ? `<div class="msg-sender">${msg.senderNickname || ''}</div>` : ''}
             <div class="msg-bubble-wrap">
@@ -377,7 +426,7 @@
             messageText: text
         }));
         input.value = '';
-        loadRoomList();
+        setTimeout(() => loadRoomList(), 300);
     }
 
     function openExitModal() { document.getElementById('exit-modal').classList.add('show'); }

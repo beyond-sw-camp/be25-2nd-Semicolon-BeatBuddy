@@ -111,5 +111,10 @@ public class ChatRoomService {
         }
         chatRoomMapper.exitChatRoom(roomId, loginUserId);
     }
+
+    // 채팅방에서 읽기
+    public void markAsRead(Long roomId, Long loginUserId) {
+        chatRoomMapper.updateReadStatus(roomId, loginUserId);
+    }
 }
 
