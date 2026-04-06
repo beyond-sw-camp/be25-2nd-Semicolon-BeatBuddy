@@ -7,8 +7,8 @@ spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://localhost:3306/beatbuddy
-    username: root
-    password: 0000
+    username: beyond
+    password: beyond
   data:
     redis:
       host: localhost
@@ -56,4 +56,3 @@ file:
 spotify:
   client-id: ${spotify.client-id}
   client-secret: ${spotify.client-secret}
-

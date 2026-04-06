@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beyond.beatbuddy.music.mapper.MusicMapper">
+
+    <!-- 앨범 저장/수정 -->
+    <insert id="upsertAlbum" parameterType="Album">
+        INSERT INTO albums (
+                album_id,
+                album_name,
+                album_cover_url
+        )
+        VALUES (
+                #{albumId},
+                #{albumName},
+                #{albumCoverUrl}
+        )
+        ON DUPLICATE KEY UPDATE
+            album_name = VALUES(album_name),
+            album_cover_url = VALUES(album_cover_url)
+    </insert>
+
+    <!-- 곡 기본 정보 + 속성 저장/수정 -->
+    <insert id="upsertMusicFeature" parameterType="MusicFeature">
+        INSERT INTO music_features (
+                            music_id,
+                            album_id,
+                            track_name,
+                            artist_name,
+                            popularity,
+                            energy,
+                            danceability,
+                            happiness,
+                            acousticness,
+                            instrumentalness,
+                            liveness,
+                            speechiness
+        )
+        VALUES (
+                #{musicId},
+                #{albumId},
+                #{trackName},
+                #{artistName},
+                #{popularity},
+                #{energy},
+                #{danceability},
+                #{happiness},
+                #{acousticness},
+                #{instrumentalness},
+                #{liveness},
+                #{speechiness}
+        )
+        ON DUPLICATE KEY UPDATE
+            album_id = VALUES(album_id),
+            track_name = VALUES(track_name),
+            artist_name = VALUES(artist_name)
+    </insert>
+
+    <!-- 유저가 선택한 곡 저장 -->
+    <insert id="insertUserFavMusic" parameterType="UserFavMusic">
+        INSERT INTO user_fav_music (
+                       user_id,
+                       music_id
+        )
+        VALUES (
+                #{userId},
+                #{musicId}
+        )
+    </insert>
+
+    <!-- 유저가 저장한 기존 곡 전체 삭제 -->
+    <delete id="deleteUserFavMusicByUserId" parameterType="long">
+        DELETE FROM user_fav_music
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 유저 취향 곡 조회 -->
+    <select id="findTasteTracksByUserId" resultType="com.beyond.beatbuddy.music.dto.response.TasteResponse$TrackInfo">
+        SELECT
+            mf.music_id AS trackId,
+            mf.track_name AS trackName,
+            mf.artist_name AS artistName,
+            a.album_id AS albumId,
+            a.album_name AS albumName,
+            a.album_cover_url AS albumCoverUrl
+        FROM user_fav_music ufm
+        JOIN music_features mf ON ufm.music_id = mf.music_id
+        JOIN albums a ON mf.album_id = a.album_id
+        WHERE ufm.user_id = #{userId}
+        ORDER BY ufm.created_at ASC
+    </select>
+
+</mapper>
