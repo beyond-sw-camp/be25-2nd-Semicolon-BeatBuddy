@@ -127,17 +127,28 @@ public class MusicService {
 
 		// track 목록
 		List<SaveTasteRequest.TrackInfo> tracks = request.getTracks();
+		validateTrackCount(tracks);
 
 		// RapidAPI(음악 분석 API)에서 가져온 각 곡의 음악적 특성 저장용 리스트
 		List<TrackAnalysisResponse> featureList = new ArrayList<>();
 
 		for (SaveTasteRequest.TrackInfo track : tracks) {
+			System.out.println("분석 시작 trackId = " + track.getTrackId());
+			System.out.println("trackName = " + track.getTrackName());
+			System.out.println("artistName = " + track.getArtistName());
 			// albums 테이블에 저장, INSERT IGNORE => 이미 있으면 스킵, 중복 에러 방지
 			// 여러 유저가 같은 앨범 선택해도 한 번만 저장되도록
 			musicMapper.insertAlbumIgnore(track.getAlbumId(), track.getAlbumName(), track.getCoverUrl());
 
 			// RapidAPI로 트랙 하나의 음악적 특성 가져오기 (energy, danceability 등 8개)
-			TrackAnalysisResponse features = trackAnalysisService.getFeatures(track.getTrackId());
+			TrackAnalysisResponse features = trackAnalysisService.getFeatures(
+					track.getTrackId(),
+					track.getTrackName(),
+					track.getArtistName()
+			);
+
+			System.out.println("분석 성공 trackId = " + track.getTrackId());
+
 			featureList.add(features);
 
 			// music_features 테이블에 저장, INSERT IGNORE = 이미 있으면 스킵
@@ -247,6 +258,12 @@ public class MusicService {
 		}
 
 		return vector;
+	}
+
+	private void validateTrackCount(List<SaveTasteRequest.TrackInfo> tracks) {
+		if (tracks == null || tracks.size() != 10) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "최애곡은 반드시 10곡이어야 합니다.");
+		}
 	}
 
 	// 취향 조회
