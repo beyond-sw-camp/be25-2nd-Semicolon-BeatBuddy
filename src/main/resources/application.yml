@@ -56,3 +56,6 @@ file:
 spotify:
   client-id: ${spotify.client-id}
   client-secret: ${spotify.client-secret}
+
+rapidapi:
+  track-analysis-host: track-analysis.p.rapidapi.com

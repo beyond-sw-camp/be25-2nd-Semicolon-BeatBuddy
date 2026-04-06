@@ -52,7 +52,15 @@
         ON DUPLICATE KEY UPDATE
             album_id = VALUES(album_id),
             track_name = VALUES(track_name),
-            artist_name = VALUES(artist_name)
+            artist_name = VALUES(artist_name),
+            popularity = VALUES(popularity),
+            energy = VALUES(energy),
+            danceability = VALUES(danceability),
+            happiness = VALUES(happiness),
+            acousticness = VALUES(acousticness),
+            instrumentalness = VALUES(instrumentalness),
+            liveness = VALUES(liveness),
+            speechiness = VALUES(speechiness)
     </insert>
 
     <!-- 유저가 선택한 곡 저장 -->

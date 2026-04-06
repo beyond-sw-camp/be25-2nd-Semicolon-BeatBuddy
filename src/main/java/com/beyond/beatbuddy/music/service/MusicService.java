@@ -26,18 +26,18 @@ public class MusicService {
     private final SpotifyService spotifyService;  // SpotifyService 연결
 
     /*
-    * 음악 검색
-    *  - 검색어를 받아 SpotifyService에 검색을 요청
-    */
+     * 음악 검색
+     *  - 검색어를 받아 SpotifyService에 검색을 요청
+     */
     public List<MusicSearchResponse> searchMusic(MusicSearchRequest request) {
         return spotifyService.searchMusic(request.getKeyword());
     }
 
     /*
-    * 최애곡 최초 저장
-    *  - 프론트에서 받은 trackId 10개를 기준으로 Spotify 상세 조회
-    *  - Rapid API 연결 전 임시 구조
-    */
+     * 최애곡 최초 저장
+     *  - 프론트에서 받은 trackId 10개를 기준으로 Spotify 상세 조회
+     *  - Rapid API 연결 전 임시 구조
+     */
     @Transactional
     public TasteSaveResponse saveTaste(Long userId, TasteSaveRequest request) {
         validateTrackCount(request);
@@ -84,9 +84,9 @@ public class MusicService {
     }
 
     /*
-    * 최애곡 수정
-    *  - 기존 최애곡 전체 삭제 후 새로 저장
-    */
+     * 최애곡 수정
+     *  - 기존 최애곡 전체 삭제 후 새로 저장
+     */
     @Transactional
     public TasteSaveResponse updateTaste(Long userId, TasteSaveRequest request) {
         validateTrackCount(request);
@@ -97,8 +97,8 @@ public class MusicService {
     }
 
     /*
-    * 저장된 최애곡 조회
-    */
+     * 저장된 최애곡 조회
+     */
     public TasteResponse getTaste(Long userId) {
         List<TasteResponse.TrackInfo> tracks = musicMapper.findTasteTracksByUserId(userId);
 
@@ -108,8 +108,8 @@ public class MusicService {
     }
 
     /*
-    * 10곡 검증
-    */
+     * 10곡 검증
+     */
     private void validateTrackCount(TasteSaveRequest request) {
         if (request.getTracks() == null || request.getTracks().size() != 10) {
             throw new IllegalArgumentException("최애곡 저장은 10곡만 가능합니다.");
@@ -117,17 +117,17 @@ public class MusicService {
     }
 
     /*
-    * Spotify 상세 정보
-    *  - trackId로 Spotify 상세조회 연결
-    */
+     * Spotify 상세 정보
+     *  - trackId로 Spotify 상세조회 연결
+     */
     private MusicSearchResponse getTrackInfoFromSpotify(String trackId) {
         return spotifyService.getTrackInfo(trackId);
     }
 
     /*
-    * 임시 Rapid API 분석 데이터
-    *  - 나중에 실제 SoundNet 연동 예정
-    */
+     * 임시 Rapid API 분석 데이터
+     *  - 나중에 실제 SoundNet 연동 예정
+     */
     private MusicFeature getTrackFeatureFromRapidApi(String trackId, MusicSearchResponse musicInfo) {
         return MusicFeature.builder()
                 .musicId(trackId)
