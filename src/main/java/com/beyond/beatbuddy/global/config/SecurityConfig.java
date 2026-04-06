@@ -49,6 +49,7 @@ public class SecurityConfig {
 				)
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(
+								"/BeatbuddyChatTest.html", // 테스트용
 								"/api/v1/auth/signup",
 								"/api/v1/auth/login",
 								"/api/v1/auth/email/**",
@@ -57,8 +58,12 @@ public class SecurityConfig {
 								"/api/v1/auth/password/reset",
 								"/default-profile.jpg",
 								"/default-group.jpg",
+								"/images/profiles/**",
+								"/images/groups/**",
 								"/swagger-ui/**",
-								"/v3/api-docs/**"
+								"/v3/api-docs/**",
+								"/ws/chat/**",
+								"/api/v1/music/justfortest"
 						).permitAll()
 						// 나머지는 인증 필요
 						.anyRequest().authenticated()

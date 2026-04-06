@@ -3,7 +3,7 @@
 <mapper namespace="com.beyond.beatbuddy.music.mapper.MusicMapper">
 
     <!-- 앨범 저장/수정 -->
-    <insert id="upsertAlbum" parameterType="Album">
+    <insert id="insertAlbumIgnore">
         INSERT INTO albums (
                 album_id,
                 album_name,
@@ -12,7 +12,7 @@
         VALUES (
                 #{albumId},
                 #{albumName},
-                #{albumCoverUrl}
+                #{coverUrl}
         )
         ON DUPLICATE KEY UPDATE
             album_name = VALUES(album_name),
@@ -20,7 +20,7 @@
     </insert>
 
     <!-- 곡 기본 정보 + 속성 저장/수정 -->
-    <insert id="upsertMusicFeature" parameterType="MusicFeature">
+    <insert id="insertMusicFeaturesIgnore">
         INSERT INTO music_features (
                             music_id,
                             album_id,
@@ -36,18 +36,18 @@
                             speechiness
         )
         VALUES (
-                #{musicId},
-                #{albumId},
-                #{trackName},
-                #{artistName},
-                #{popularity},
-                #{energy},
-                #{danceability},
-                #{happiness},
-                #{acousticness},
-                #{instrumentalness},
-                #{liveness},
-                #{speechiness}
+                   #{track.trackId},
+                   #{track.albumId},
+                   #{track.trackName},
+                   #{track.artistName},
+                   #{features.popularity},
+                   #{features.energy},
+                   #{features.danceability},
+                   #{features.happiness},
+                   #{features.acousticness},
+                   #{features.instrumentalness},
+                   #{features.liveness},
+                   #{features.speechiness}
         )
         ON DUPLICATE KEY UPDATE
             album_id = VALUES(album_id),
@@ -63,8 +63,8 @@
             speechiness = VALUES(speechiness)
     </insert>
 
-    <!-- 유저가 선택한 곡 저장 -->
-    <insert id="insertUserFavMusic" parameterType="UserFavMusic">
+    <!-- 유저 최애곡 저장 -->
+    <insert id="insertUserFavMusic">
         INSERT INTO user_fav_music (
                        user_id,
                        music_id
@@ -75,8 +75,8 @@
         )
     </insert>
 
-    <!-- 유저가 저장한 기존 곡 전체 삭제 -->
-    <delete id="deleteUserFavMusicByUserId" parameterType="long">
+    <!-- 유저가 저장한 최애곡 전체 삭제 -->
+    <delete id="deleteUserFavMusic">
         DELETE FROM user_fav_music
         WHERE user_id = #{userId}
     </delete>
@@ -96,5 +96,21 @@
         WHERE ufm.user_id = #{userId}
         ORDER BY ufm.created_at ASC
     </select>
+
+    <!-- 유저 취향 벡터 저장 -->
+    <insert id="upsertUserProfile">
+        INSERT INTO user_profiles (user_id, taste_vector)
+        VALUES (#{userId}, VEC_FromText(#{tasteVector}))
+            ON DUPLICATE KEY UPDATE
+                taste_vector = VEC_FromText(#{tasteVector}),
+                updated_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <!-- 취향 분석 완료 표시 -->
+    <update id="updateIsTasteAnalyzed">
+        UPDATE users
+        SET is_taste_analyzed = TRUE
+        WHERE user_id = #{userId}
+    </update>
 
 </mapper>

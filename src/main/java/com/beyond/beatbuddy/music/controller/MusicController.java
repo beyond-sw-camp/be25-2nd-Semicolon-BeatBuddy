@@ -1,97 +1,74 @@
 package com.beyond.beatbuddy.music.controller;
 
-// 요청 받는 입구
-
 import com.beyond.beatbuddy.global.dto.ApiResponse;
-import com.beyond.beatbuddy.global.security.UserPrincipal;
-import com.beyond.beatbuddy.music.dto.request.MusicSearchRequest;
-import com.beyond.beatbuddy.music.dto.request.TasteSaveRequest;
-import com.beyond.beatbuddy.music.dto.response.MusicSearchResponse;
+import com.beyond.beatbuddy.music.dto.request.SaveTasteRequest;
+import com.beyond.beatbuddy.music.dto.response.TrackSearchResponse;
 import com.beyond.beatbuddy.music.dto.response.TasteResponse;
-import com.beyond.beatbuddy.music.dto.response.TasteSaveResponse;
 import com.beyond.beatbuddy.music.service.MusicService;
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
-@RequestMapping("/api/v1/music")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/music")
 public class MusicController {
 
-    private final MusicService musicService;
+	private final MusicService musicService;
+
+	// 사용자가 본인의 최애 음악을 서치할 때 호출
+	@GetMapping("/search")
+	public ResponseEntity<ApiResponse<List<TrackSearchResponse>>> searchTracks(
+			@RequestParam @NotBlank(message = "검색어를 입력해주세요") String keyword) {
+		List<TrackSearchResponse> response = musicService.searchTracks(keyword);
+		return ApiResponse.of(HttpStatus.OK, "음악 검색이 완료됐습니다.", response);
+	}
+
+	// 사용자가 본인의 최애 음악 10개를 고르고 나서 호출
+	@PostMapping("/taste")
+	public ResponseEntity<ApiResponse<Void>> saveTaste(
+			@RequestBody @Valid SaveTasteRequest request) {
+		musicService.saveTaste(request);
+		return ApiResponse.of(HttpStatus.OK, "취향이 저장됐습니다.", null);
+	}
 
     /*
-    * 음악 검색
-    *  - 프론트에서 keyword를 받아 Spotify 검색 결과를 반환
-    */
-
-    @PostMapping("/search")
-    @Operation(summary = "앨범, 아티스트, 곡 검색")
-    public ResponseEntity<ApiResponse<List<MusicSearchResponse>>> searchMusic(
-            @Valid @RequestBody MusicSearchRequest request
-    ) {
-        List<MusicSearchResponse> result = musicService.searchMusic(request);
-        return ApiResponse.of(HttpStatus.OK, "음악 검색 성공", result);
-    }
-
-    /*
-    * 최애곡 최초 저장
-    *  - 프론트에서 선택한 10곡(trackId 목록)을 받아 저장
-    */
-    @PostMapping("/taste")
-    @Operation(summary = "최애곡 10곡 저장")
-    public ResponseEntity<ApiResponse<TasteSaveResponse>> saveTaste(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @Valid @RequestBody TasteSaveRequest request
-    ) {
-        Long userId = userPrincipal.getUserId();
-
-        TasteSaveResponse result = musicService.saveTaste(userId, request);
-        return ApiResponse.of(HttpStatus.OK, "최애곡 저장 성공", result);
-    }
-
-    /*
-    * 저장된 최애곡 조회
-    *  - 음악 탭 진입 시 저장된 취향 데이터가 있는지 확인하고 변환
-    */
+     * 저장된 취향 조회
+     *  - 음악 탭 진입 시 저장된 취향 데이터가 있는지 확인하고 변환
+     */
     @GetMapping("/taste")
-    @Operation(summary = "최애곡 목록 조회")
-    public ResponseEntity<ApiResponse<TasteResponse>> getTaste(
-            @AuthenticationPrincipal UserPrincipal userPrincipal
-    ) {
-        Long userId = userPrincipal.getUserId();
+    public ResponseEntity<ApiResponse<TasteResponse>> getTaste() {
 
-        TasteResponse result = musicService.getTaste(userId);
-        return ApiResponse.of(HttpStatus.OK, "최애곡 조회 성공", result);
+        TasteResponse result = musicService.getTaste();
+        return ApiResponse.of(HttpStatus.OK, "취향 조회에 성공했습니다.", result);
     }
 
     /*
-    * 취향 수정
-    *  - 기존 10곡을 전체 교체
-    */
+     * 취향 수정
+     *  - 기존 10곡을 전체 교체
+     */
     @PutMapping("/taste")
-    @Operation(summary = "최애곡 수정")
-    public ResponseEntity<ApiResponse<TasteSaveResponse>> updateTaste(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @Valid @RequestBody TasteSaveRequest request
-    ) {
-        Long userId = userPrincipal.getUserId();
+    public ResponseEntity<ApiResponse<Void>> updateTaste(
+            @RequestBody @Valid SaveTasteRequest request) {
 
-        TasteSaveResponse result = musicService.updateTaste(userId, request);
-        return ApiResponse.of(HttpStatus.OK, "최애곡 수정 성공", result);
+        musicService.updateTaste(request);
+        return ApiResponse.of(HttpStatus.OK, "취향이 성공적으로 수정되었습니다.", null);
     }
 
+    // config에서 열어놨음 로그인 안해도 접속 가능하도록,,,
+	// 스포티파이 곡 아이디로 곡 특성 가져오기
+	@GetMapping("/justfortest")
+	public ResponseEntity<ApiResponse<Object>> searchTest (
+			@RequestParam String spotifyId) {
+		Object data = musicService.searchTest(spotifyId);
+		return ApiResponse.of(HttpStatus.OK, "테스트 - 음악 특성 가져오기 성공", data);
+	}
 
 }

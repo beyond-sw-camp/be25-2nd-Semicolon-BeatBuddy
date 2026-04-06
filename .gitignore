@@ -64,7 +64,6 @@ fabric.properties
 
 ### VS Code ###
 .vscode/
-
 ### Gradle ###
 .gradle/
 build/
@@ -123,7 +122,7 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk
-
+.claude
 ### env 파일 ###
 .env
 ## 비밀번호 포함 파일 - 카톡으로 공유 예정 ##
