@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -129,18 +131,16 @@ public class MusicService {
 
 		// track 목록
 		List<SaveTasteRequest.TrackInfo> tracks = request.getTracks();
-		validateTrackCount(tracks);
+		validateTrackCount(tracks);  // 10곡 검사
+		validateDuplicateTracks(tracks);  // 중복 곡 검사
 
 		// RapidAPI(음악 분석 API)에서 가져온 각 곡의 음악적 특성 저장용 리스트
 		List<TrackAnalysisResponse> featureList = new ArrayList<>();
 
 		for (SaveTasteRequest.TrackInfo track : tracks) {
 			System.out.println("분석 시작 trackId = " + track.getTrackId());
-			System.out.println("trackName = " + track.getTrackName());
-			System.out.println("artistName = " + track.getArtistName());
-			// albums 테이블에 저장, INSERT IGNORE => 이미 있으면 스킵, 중복 에러 방지
-			// 여러 유저가 같은 앨범 선택해도 한 번만 저장되도록
-			musicMapper.insertAlbumIgnore(track.getAlbumId(), track.getAlbumName(), track.getCoverUrl());
+
+			validateSpotifyTrack(track.getTrackId());
 
 			// RapidAPI로 트랙 하나의 음악적 특성 가져오기 (energy, danceability 등 8개)
 			TrackAnalysisResponse features = trackAnalysisService.getFeatures(
@@ -153,12 +153,6 @@ public class MusicService {
 
 			featureList.add(features);
 
-			// music_features 테이블에 저장, INSERT IGNORE = 이미 있으면 스킵
-			// 여러 유저가 같은 곡 선택해도 특성 데이터는 한 번만 저장됨
-			musicMapper.insertMusicFeaturesIgnore(track, features);
-
-			// user_fav_music 테이블에 저장: "이 유저가 이 곡을 좋아한다"는 관계 저장
-			musicMapper.insertUserFavMusic(userId, track.getTrackId());
 			try {
 				// RapidAPI 무료 플랜이 초당 1건 제한이라 1초 딜레이 - 느려터짐
 				Thread.sleep(1000);
@@ -169,6 +163,27 @@ public class MusicService {
 				throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "취향 저장 중 오류가 발생했습니다.");
 			}
 		}
+
+		for (int i = 0; i < tracks.size(); i++) {
+
+			SaveTasteRequest.TrackInfo track = tracks.get(i);
+			TrackAnalysisResponse features = featureList.get(i);
+
+			musicMapper.insertAlbumIgnore(
+					track.getAlbumId(),
+					track.getAlbumName(),
+					track.getCoverUrl()
+			);
+
+			// music_features 테이블에 저장, INSERT IGNORE = 이미 있으면 스킵
+			// 여러 유저가 같은 곡 선택해도 특성 데이터는 한 번만 저장됨
+			musicMapper.insertMusicFeaturesIgnore(track, features);
+
+			// user_fav_music 테이블에 저장: "이 유저가 이 곡을 좋아한다"는 관계 저장
+			musicMapper.insertUserFavMusic(userId, track.getTrackId());
+
+		}
+
 
 		// 10곡의 특성값으로 취향 벡터 계산 (평균 8개 + 표준편차 8개 = 16차원)
 		double[] vector = calculateTasteVector(featureList);
@@ -182,6 +197,21 @@ public class MusicService {
 		// users 테이블의 is_taste_analyzed = true
 		// 취향 탭 진입 시 이 값으로 편집모드 / 프로필모드 분기 : 중요!!
 		musicMapper.updateIsTasteAnalyzed(userId);
+	}
+
+	private void validateSpotifyTrack(String trackId) {
+		try {
+			SpotifyApi spotifyApi = new SpotifyApi.Builder()
+					.setAccessToken(getAccessToken())
+					.build();
+
+			spotifyApi.getTrack(trackId).build().execute();
+
+		} catch (IOException | ParseException e) {
+			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "Spotify 트랙 검증 실패: " + e.getMessage());
+		} catch (SpotifyWebApiException e) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "유효하지 않은 Spotify 트랙입니다.");
+		}
 	}
 
 	@Transactional
@@ -265,6 +295,16 @@ public class MusicService {
 	private void validateTrackCount(List<SaveTasteRequest.TrackInfo> tracks) {
 		if (tracks == null || tracks.size() != 10) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "최애곡은 반드시 10곡이어야 합니다.");
+		}
+	}
+
+	private void validateDuplicateTracks(List<SaveTasteRequest.TrackInfo> tracks) {
+		Set<String> trackIds = new HashSet<>();
+
+		for (SaveTasteRequest.TrackInfo track : tracks) {
+			if (!trackIds.add(track.getTrackId())) {
+				throw new BusinessException(HttpStatus.BAD_REQUEST, "중복된 곡은 저장할 수 없습니다.");
+			}
 		}
 	}
 

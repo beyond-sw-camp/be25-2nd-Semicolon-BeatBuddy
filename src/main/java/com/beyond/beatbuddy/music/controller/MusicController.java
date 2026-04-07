@@ -47,7 +47,17 @@ public class MusicController {
     public ResponseEntity<ApiResponse<TasteResponse>> getTaste() {
 
         TasteResponse result = musicService.getTaste();
-        return ApiResponse.of(HttpStatus.OK, "취향 조회에 성공했습니다.", result);
+
+		String message;
+
+		if (Boolean.FALSE.equals(result.getIsTasteAnalyzed())
+				&& (result.getTracks() == null || result.getTracks().isEmpty())) {
+			message = "저장된 취향 데이터가 없습니다.";
+		} else {
+			message = "취향 조회에 성공했습니다.";
+		}
+
+        return ApiResponse.of(HttpStatus.OK, message, result);
     }
 
     /*

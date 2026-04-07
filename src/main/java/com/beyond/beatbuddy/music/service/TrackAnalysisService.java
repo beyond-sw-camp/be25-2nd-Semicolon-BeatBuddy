@@ -27,29 +27,9 @@ public class TrackAnalysisService {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final HttpClient client = HttpClient.newHttpClient();
 
-	// spotifyId만 받던 걸 -> trackName, artistName도 같이 받도록 변경
 	public TrackAnalysisResponse getFeatures(String spotifyId, String trackName, String artistName) {
-		try {
-			// 1차: Spotify ID 기반 호출
 			return requestBySpotifyId(spotifyId);
-		} catch (BusinessException e) {
-			// 404면 곡명 + 가수명 방식으로 한 번 더 시도
-			if (e.getMessage() != null && e.getMessage().contains("404")) {
-				try {
-					return requestBySongAndArtist(trackName, artistName);
-				} catch (BusinessException fallbackException) {
-					throw new BusinessException(
-							HttpStatus.INTERNAL_SERVER_ERROR,
-							"곡 분석 실패 - trackId=" + spotifyId
-									+ ", trackName=" + trackName
-									+ ", artistName=" + artistName
-									+ ", 원인=" + fallbackException.getMessage()
-					);
-				}
-			}
-			throw e;
 		}
-	}
 
 	// spotifyId 방식
 	private TrackAnalysisResponse requestBySpotifyId(String spotifyId) {
@@ -89,7 +69,39 @@ public class TrackAnalysisService {
 				);
 			}
 
-			return objectMapper.readValue(response.body(), TrackAnalysisResponse.class);
+			TrackAnalysisResponse parsed =
+					objectMapper.readValue(response.body(), TrackAnalysisResponse.class);
+
+			if (parsed.getError() != null && !parsed.getError().isBlank()) {
+				throw new BusinessException(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						"RapidAPI 분석 실패"
+				);
+			}
+
+			if (parsed.getId() == null) {
+				throw new BusinessException(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						"유효하지 않은 곡"
+				);
+			}
+
+			if (parsed.getPopularity() == null
+					|| parsed.getEnergy() == null
+					|| parsed.getDanceability() == null
+					|| parsed.getHappiness() == null
+					|| parsed.getAcousticness() == null
+					|| parsed.getInstrumentalness() == null
+					|| parsed.getLiveness() == null
+					|| parsed.getSpeechiness() == null) {
+
+				throw new BusinessException(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						"분석값 없음"
+				);
+			}
+
+			return parsed;
 
 		} catch (IOException | InterruptedException e) {
 			Thread.currentThread().interrupt();
