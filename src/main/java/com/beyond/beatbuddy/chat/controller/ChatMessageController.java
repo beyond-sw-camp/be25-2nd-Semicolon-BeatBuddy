@@ -5,7 +5,9 @@ import com.beyond.beatbuddy.chat.dto.response.ChatMessageResponse;
 import com.beyond.beatbuddy.chat.dto.response.EventResponse;
 import com.beyond.beatbuddy.chat.entity.ChatMessage;
 import com.beyond.beatbuddy.chat.mapper.ChatMessageMapper;
+import com.beyond.beatbuddy.chat.mapper.ChatRoomMapper;
 import com.beyond.beatbuddy.chat.service.ChatMessageService;
+import com.beyond.beatbuddy.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
@@ -27,6 +29,9 @@ public class ChatMessageController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageMapper chatMessageMapper;
 
+    private final ChatRoomService chatRoomService;
+    private final ChatRoomMapper chatRoomMapper;
+
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageRequest request, SimpMessageHeaderAccessor accessor) {
 
@@ -43,5 +48,19 @@ public class ChatMessageController {
 
         log.info("이벤트 푸시: /sub/events/{}", receiverId);
         messagingTemplate.convertAndSend("/sub/events/" + receiverId, new EventResponse("NEW_MESSAGE", request.getRoomId()));
+    }
+
+    @MessageMapping("/chat/read")
+    public void markAsRead(Map<String, Long> payload, SimpMessageHeaderAccessor accessor) {
+        Long loginUserId = (Long) accessor.getSessionAttributes().get("userId");
+        Long roomId = payload.get("roomId");
+
+        chatRoomService.markAsRead(roomId, loginUserId);
+
+        Long opponentUserId = chatRoomMapper.findOpponentUserId(roomId, loginUserId);
+        messagingTemplate.convertAndSend("/sub/events/" + opponentUserId,
+                new EventResponse("MESSAGE_READ", roomId));
+
+        log.info("읽음처리: roomId={}, loginUserId={}, opponentUserId={}", roomId, loginUserId, opponentUserId);
     }
 }
