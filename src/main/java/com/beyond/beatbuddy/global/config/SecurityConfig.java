@@ -55,8 +55,8 @@ public class SecurityConfig {
 								"/api/v1/auth/token/refresh",
 								"/api/v1/auth/password/email/send",
 								"/api/v1/auth/password/reset",
-								"/default-profile.jpg",
-								"/default-group.jpg",
+								"/default-profile.png",
+								"/default-group.png",
 								"/swagger-ui/**",
 								"/v3/api-docs/**"
 						).permitAll()
