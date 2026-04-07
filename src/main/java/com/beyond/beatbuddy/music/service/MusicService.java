@@ -129,6 +129,29 @@ public class MusicService {
 		// JWT에서 현재 로그인한 사용자 ID 추출
 		Long userId = AuthUtil.getCurrentUserId();
 
+		// 이미 취향 저장된 사용자인지 확인
+		Boolean isTasteAnalyzed = userMapper.findIsTasteAnalyzedByUserId(userId);
+		if (Boolean.TRUE.equals(isTasteAnalyzed)) {
+			throw new BusinessException(
+					HttpStatus.BAD_REQUEST,
+					"이미 취향이 저장된 사용자입니다. 수정은 PUT /api/v1/music/taste를 사용해주세요."
+			);
+		}
+
+		saveTasteInternal(userId, request);
+
+	}
+
+	@Transactional
+	public void updateTaste(SaveTasteRequest request) {
+		Long userId = AuthUtil.getCurrentUserId();
+
+		musicMapper.deleteUserFavMusic(userId);
+
+		saveTasteInternal(userId, request);
+	}
+
+	private void saveTasteInternal(Long userId, SaveTasteRequest request) {
 		// track 목록
 		List<SaveTasteRequest.TrackInfo> tracks = request.getTracks();
 		validateTrackCount(tracks);  // 10곡 검사
@@ -137,6 +160,7 @@ public class MusicService {
 		// RapidAPI(음악 분석 API)에서 가져온 각 곡의 음악적 특성 저장용 리스트
 		List<TrackAnalysisResponse> featureList = new ArrayList<>();
 
+		// 분석 먼저
 		for (SaveTasteRequest.TrackInfo track : tracks) {
 			System.out.println("분석 시작 trackId = " + track.getTrackId());
 
@@ -164,6 +188,7 @@ public class MusicService {
 			}
 		}
 
+		// 분석 전부 성공할 시 저장
 		for (int i = 0; i < tracks.size(); i++) {
 
 			SaveTasteRequest.TrackInfo track = tracks.get(i);
@@ -212,15 +237,6 @@ public class MusicService {
 		} catch (SpotifyWebApiException e) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "유효하지 않은 Spotify 트랙입니다.");
 		}
-	}
-
-	@Transactional
-	public void updateTaste(SaveTasteRequest request) {
-		Long userId = AuthUtil.getCurrentUserId();
-
-		musicMapper.deleteUserFavMusic(userId);
-
-		saveTaste(request);
 	}
 
 	public Object searchTest(String spotifyId){
