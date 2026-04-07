@@ -94,7 +94,11 @@
         JOIN music_features mf ON ufm.music_id = mf.music_id
         JOIN albums a ON mf.album_id = a.album_id
         WHERE ufm.user_id = #{userId}
-        ORDER BY ufm.created_at ASC
+        ORDER BY ufm.fav_id ASC
+        <!--
+             * created_at은 동일한 timestamp로 저장될 수 있어 순서 보장 안됨
+             * AUTO_INCREMENT인 fav_id 기준으로 정렬하면 저장 순서대로 조회됨
+        -->
     </select>
 
     <!-- 유저 취향 벡터 저장 -->
