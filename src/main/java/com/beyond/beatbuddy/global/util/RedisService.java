@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -108,5 +109,28 @@ public class RedisService {
 	// 블랙리스트 여부 확인
 	public boolean isBlacklisted(String accessToken) {
 		return redisTemplate.hasKey("blacklist:" + accessToken);
+	}
+
+	// ===========================
+	// Recommendation Cache
+	// ===========================
+
+	public String getValue(String key) {
+		return redisTemplate.opsForValue().get(key);
+	}
+
+	public void setValue(String key, String value, long ttl, TimeUnit unit) {
+		redisTemplate.opsForValue().set(key, value, ttl, unit);
+	}
+
+	public void deleteKey(String key) {
+		redisTemplate.delete(key);
+	}
+
+	public void deleteKeysByPattern(String pattern) {
+		Set<String> keys = redisTemplate.keys(pattern);
+		if (keys != null && !keys.isEmpty()) {
+			redisTemplate.delete(keys);
+		}
 	}
 }

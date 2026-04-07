@@ -27,6 +27,7 @@ public class NotificationService {
                 .map(n -> NotificationResponse.builder()
                         .notificationId(n.getNotificationId())
                         .senderId(n.getSenderId())
+                        .targetId(n.getTargetId())
                         .type(n.getType())
                         .message(n.getMessage())
                         .isRead(n.isRead())

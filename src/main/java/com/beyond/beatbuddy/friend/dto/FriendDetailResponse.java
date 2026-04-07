@@ -17,7 +17,7 @@ public class FriendDetailResponse {
     private String profileImageUrl;
     private String gender;
     private Integer birthYear;
-    private Integer roomId;
+    private Long roomId;
     // 최애곡 목록 (상세 정보 포함)
     private List<FavoriteMusicItem> favoriteMusicList;
 
@@ -26,7 +26,7 @@ public class FriendDetailResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FavoriteMusicItem {
-        private Long musicId;
+        private String musicId;
         private String trackName;
         private String artistName;
         private String albumCoverUrl;

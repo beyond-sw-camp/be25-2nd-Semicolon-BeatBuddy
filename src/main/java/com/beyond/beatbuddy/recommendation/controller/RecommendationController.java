@@ -41,7 +41,7 @@ public class RecommendationController {
             @PathVariable Long groupId,
             @PathVariable Long userId) {
         Long myUserId = userPrincipal.getUserId();
-        recommendationService.skipRecommendation(myUserId, userId);
+        recommendationService.skipRecommendation(myUserId, groupId, userId);
         return ApiResponse.of(HttpStatus.OK, "해당 사용자를 추천에서 제외했습니다.", null);
     }
 }

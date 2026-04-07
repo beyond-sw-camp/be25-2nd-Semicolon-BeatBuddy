@@ -11,6 +11,7 @@ import com.beyond.beatbuddy.global.exception.ForbiddenException;
 import com.beyond.beatbuddy.global.exception.NotFoundException;
 import com.beyond.beatbuddy.notification.entity.Notification;
 import com.beyond.beatbuddy.notification.mapper.NotificationMapper;
+import com.beyond.beatbuddy.recommendation.service.RecommendationCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class FriendService {
 
     private final FriendMapper friendMapper;
     private final NotificationMapper notificationMapper;
+    private final RecommendationCacheService recommendationCacheService;
 
     /**
      * 친구 요청 보내기
@@ -56,6 +58,7 @@ public class FriendService {
         Notification notification = Notification.builder()
                 .userId(receiverId) // 알림 수신자 = 친구 요청 받는 사람
                 .senderId(requesterId) // 알림 발신자 = 핑 날린 사람
+                .targetId(friendship.getFriendshipId()) // 알림 액션용 friendshipId
                 .type("FRIEND_REQUEST")
                 .message("새로운 친구 요청이 도착했습니다.")
                 .build();
@@ -87,10 +90,13 @@ public class FriendService {
         Notification notification = Notification.builder()
                 .userId(friendship.getRequesterId()) // 알림 수신자 = 친구 요청을 보낸 사람
                 .senderId(myUserId) // 알림 발신자 = 수락한 사람
+                .targetId(friendshipId)
                 .type("FRIEND_ACCEPT")
                 .message("친구 요청을 수락했습니다.")
                 .build();
         notificationMapper.insertNotification(notification);
+
+        recommendationCacheService.evictUsers(myUserId, friendship.getRequesterId());
     }
 
     /**
@@ -166,7 +172,12 @@ public class FriendService {
             throw new NotFoundException("요청하신 자원을 찾을 수 없습니다.");
         }
 
+        Long opponentUserId = friendship.getRequesterId().equals(myUserId)
+                ? friendship.getReceiverId()
+                : friendship.getRequesterId();
+
         friendMapper.deleteFriend(friendshipId);
+        recommendationCacheService.evictUsers(myUserId, opponentUserId);
     }
 
     private Friendship getFriendshipOrThrow(Long friendshipId) {

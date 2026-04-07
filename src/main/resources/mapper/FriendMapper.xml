@@ -92,7 +92,12 @@
             u.profile_image_url,
             u.gender,
             u.birth_year,
-            u.room_id,
+            (
+                SELECT MIN(cr.room_id)
+                FROM chat_rooms cr
+                WHERE (cr.user_a_id = #{myUserId} AND cr.user_b_id = u.user_id)
+                   OR (cr.user_b_id = #{myUserId} AND cr.user_a_id = u.user_id)
+            ) AS room_id,
             mf.music_id,
             mf.track_name,
             mf.artist_name,
@@ -110,5 +115,4 @@
     </select>
 
 </mapper>
-
 

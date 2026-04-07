@@ -86,6 +86,6 @@ public class FriendController {
             @PathVariable Long friendId) {
         Long myUserId = userPrincipal.getUserId();
         friendService.deleteFriend(myUserId, friendId);
-        return ApiResponse.of(HttpStatus.OK, "친구를 삭제했습니다.", null);
+        return ApiResponse.of(HttpStatus.OK, "친구 관계를 성공적으로 삭제했습니다.", null);
     }
 }
