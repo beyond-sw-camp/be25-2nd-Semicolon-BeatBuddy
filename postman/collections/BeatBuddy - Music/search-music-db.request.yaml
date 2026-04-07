@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'search-music-db'
+method: GET
+url: '{{baseUrl}}/api/v1/music/search'
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{accessToken}}'
+queryParams:
+  - key: keyword
+    value: BTS
