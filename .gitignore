@@ -129,3 +129,6 @@ $RECYCLE.BIN/
 ## 비밀번호 포함 파일 - 카톡으로 공유 예정 ##
 application-secret.yml
 !gradle/wrapper/gradle-wrapper.jar
+.gradle-local/wrapper/dists/gradle-9.4.1-bin/arn2x92ynaizyzdaamcbpbhtj/gradle-9.4.1-bin.zip.lck
+.gradle-local/wrapper/dists/gradle-9.4.1-bin/arn2x92ynaizyzdaamcbpbhtj/gradle-9.4.1-bin.zip.part
+postman/collections/BeatBuddy - Music/search-music-db.request.yaml
