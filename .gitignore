@@ -126,6 +126,7 @@ $RECYCLE.BIN/
 
 ### env 파일 ###
 .env
+.claude
 ## 비밀번호 포함 파일 - 카톡으로 공유 예정 ##
 application-secret.yml
 !gradle/wrapper/gradle-wrapper.jar
