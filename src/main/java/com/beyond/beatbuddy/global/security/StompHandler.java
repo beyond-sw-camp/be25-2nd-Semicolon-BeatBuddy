@@ -4,6 +4,7 @@ import com.beyond.beatbuddy.global.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 public class StompHandler implements ChannelInterceptor {
 
     private final JwtUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -28,8 +30,14 @@ public class StompHandler implements ChannelInterceptor {
             String bearerToken = accessor.getFirstNativeHeader("Authorization");
 
             if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+                String token = jwtUtil.substringToken(bearerToken);
+
+                // 블랙리스트 검증
+                if (redisTemplate.hasKey("blacklist:" + token)) {
+                    throw new MessagingException("로그아웃된 토큰");
+                }
+                // JWT 검증
                 try{
-                    String token = jwtUtil.substringToken(bearerToken);
                     Claims claims = jwtUtil.extractClaims(token);
 
                     Long userId = Long.valueOf(claims.getSubject());
@@ -48,16 +56,8 @@ public class StompHandler implements ChannelInterceptor {
             }
         }
 
-        /*if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // TODO: 임시 하드코딩 - JWT 연동 시 교체
-            accessor.getSessionAttributes().put("userId", 1L);
-            accessor.getSessionAttributes().put("email", "test@test.com");
-            accessor.getSessionAttributes().put("nickname", "테스터");
-        }*/
-
         if (StompCommand.SEND.equals(accessor.getCommand())) {
             Object userId = accessor.getSessionAttributes().get("userId");
-
 
             if (userId == null) {
                 log.warn("SEND: WebSocket 세션에 사용자 정보 없음");
