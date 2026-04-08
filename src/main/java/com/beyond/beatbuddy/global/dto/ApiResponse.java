@@ -10,17 +10,17 @@ import org.springframework.http.ResponseEntity;
 @AllArgsConstructor
 @Builder
 public class ApiResponse<T> {
-	private int status;
-	private String message;
-	private T result;
+    private int status;
+    private String message;
+    private T result;
 
-	public static <T> ResponseEntity<ApiResponse<T>> of(
-			HttpStatus httpStatus, String message, T data) {
-		ApiResponse<T> body = ApiResponse.<T>builder()
-				.status(httpStatus.value())
-				.message(message)
-				.result(data)
-				.build();
-		return ResponseEntity.status(httpStatus).body(body);
-	}
+    public static <T> ResponseEntity<ApiResponse<T>> of(
+            HttpStatus httpStatus, String message, T data) {
+        ApiResponse<T> body = ApiResponse.<T>builder()
+                .status(httpStatus.value())
+                .message(message)
+                .result(data)
+                .build();
+        return ResponseEntity.status(httpStatus).body(body);
+    }
 }

@@ -21,64 +21,64 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private final JwtUtil jwtUtil;
-	private final RedisService redisService;
+    private final JwtUtil jwtUtil;
+    private final RedisService redisService;
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request,
-									HttpServletResponse response,
-									FilterChain filterChain)
-			throws ServletException, IOException {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
-		log.info("Filter 실행: {}", request.getRequestURI());
-		String bearerToken = request.getHeader("Authorization");
-		log.info("bearerToken: {}", bearerToken);
+        log.info("Filter 실행: {}", request.getRequestURI());
+        String bearerToken = request.getHeader("Authorization");
+        log.info("bearerToken: {}", bearerToken);
 
-		// 토큰 없으면 그냥 통과 (공개 API는 SecurityConfig에서 permitAll)
-		if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
-			log.info("토큰 없음, 통과");  // ← 추가
-			filterChain.doFilter(request, response);
-			return;
-		}
+        // 토큰 없으면 그냥 통과 (공개 API는 SecurityConfig에서 permitAll)
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            log.info("토큰 없음, 통과");  // ← 추가
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-		try {
-			// 1. Bearer 제거
-			String token = jwtUtil.substringToken(bearerToken);
+        try {
+            // 1. Bearer 제거
+            String token = jwtUtil.substringToken(bearerToken);
 
-			// 2. 블랙리스트 확인
-			if (redisService.isBlacklisted(token)) {
-				log.warn("블랙리스트 토큰 요청: {}", request.getRequestURI());
-				sendErrorResponse(response, "로그아웃된 토큰입니다.");
-				return;
-			}
+            // 2. 블랙리스트 확인
+            if (redisService.isBlacklisted(token)) {
+                log.warn("블랙리스트 토큰 요청: {}", request.getRequestURI());
+                sendErrorResponse(response, "로그아웃된 토큰입니다.");
+                return;
+            }
 
-			// 3. 토큰 유효성 검증
-			jwtUtil.validateToken(token);
+            // 3. 토큰 유효성 검증
+            jwtUtil.validateToken(token);
 
-			// 4. email이랑 userId 파싱해서 SecurityContext에 등록
-			Long userId = jwtUtil.getUserId(token);
-			String email = jwtUtil.getEmail(token);
+            // 4. email이랑 userId 파싱해서 SecurityContext에 등록
+            Long userId = jwtUtil.getUserId(token);
+            String email = jwtUtil.getEmail(token);
 
-			UserPrincipal userPrincipal = new UserPrincipal(userId, email);
+            UserPrincipal userPrincipal = new UserPrincipal(userId, email);
 
-			UsernamePasswordAuthenticationToken authentication =
-					new UsernamePasswordAuthenticationToken(userPrincipal, null, List.of());
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userPrincipal, null, List.of());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		} catch (IllegalArgumentException | JwtException e) {
-			log.warn("유효하지 않은 토큰: {}", e.getMessage());
-			sendErrorResponse(response, "유효하지 않은 토큰입니다.");
-			return;
-		}
+        } catch (IllegalArgumentException | JwtException e) {
+            log.warn("유효하지 않은 토큰: {}", e.getMessage());
+            sendErrorResponse(response, "유효하지 않은 토큰입니다.");
+            return;
+        }
 
-		filterChain.doFilter(request, response);
-	}
+        filterChain.doFilter(request, response);
+    }
 
-	private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
-		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-		response.setContentType("application/json;charset=UTF-8");
-		response.getWriter().write(
-				"{\"status\":401,\"message\":\"" + message + "\",\"result\":null}"
-		);
-	}
+    private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(
+                "{\"status\":401,\"message\":\"" + message + "\",\"result\":null}"
+        );
+    }
 }

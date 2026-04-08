@@ -7,10 +7,10 @@ import lombok.Getter;
 @Getter
 @Builder
 public class TokenResponse {
-	private String accessToken;
-	@JsonIgnore
-	private String refreshToken;
-	private Long userId;
-	private String email;
-	private String nickname;
+    private String accessToken;
+    @JsonIgnore
+    private String refreshToken;
+    private Long userId;
+    private String email;
+    private String nickname;
 }

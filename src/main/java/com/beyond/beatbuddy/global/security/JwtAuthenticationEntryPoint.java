@@ -15,22 +15,22 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-	private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-	@Override
-	public void commence(HttpServletRequest request,
-						 HttpServletResponse response,
-						 AuthenticationException authException) throws IOException {
+    @Override
+    public void commence(HttpServletRequest request,
+                         HttpServletResponse response,
+                         AuthenticationException authException) throws IOException {
 
-		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-		response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
 
-		ApiResponse<?> apiResponse = ApiResponse.builder()
-				.status(401)
-				.message("인증이 필요합니다.")
-				.result(null)
-				.build();
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .status(401)
+                .message("인증이 필요합니다.")
+                .result(null)
+                .build();
 
-		response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
-	}
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+    }
 }

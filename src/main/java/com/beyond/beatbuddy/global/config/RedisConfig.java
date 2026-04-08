@@ -10,26 +10,26 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 
 @Configuration
 public class RedisConfig {
-	@Value("${spring.data.redis.host}")
-	private String host;
+    @Value("${spring.data.redis.host}")
+    private String host;
 
-	@Value("${spring.data.redis.port}")
-	private int port;
+    @Value("${spring.data.redis.port}")
+    private int port;
 
-	@Value("${spring.data.redis.password}")
-	private String password;
+    @Value("${spring.data.redis.password}")
+    private String password;
 
-	@Bean
-	public RedisConnectionFactory redisConnectionFactory() {
-		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-		config.setHostName(host);
-		config.setPort(port);
-		config.setPassword(password);
-		return new LettuceConnectionFactory(config);
-	}
+    @Bean
+    public RedisConnectionFactory redisConnectionFactory() {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(host);
+        config.setPort(port);
+        config.setPassword(password);
+        return new LettuceConnectionFactory(config);
+    }
 
-	@Bean
-	public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
-		return new StringRedisTemplate(factory);
-	}
+    @Bean
+    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
+        return new StringRedisTemplate(factory);
+    }
 }

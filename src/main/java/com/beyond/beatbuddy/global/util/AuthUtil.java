@@ -5,19 +5,19 @@ import com.beyond.beatbuddy.global.security.UserPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AuthUtil {
-	public static Long getCurrentUserId() {
-		UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext()
-				.getAuthentication()
-				.getPrincipal();
+    public static Long getCurrentUserId() {
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-		return userPrincipal.getUserId();
-	}
+        return userPrincipal.getUserId();
+    }
 
-	public static String getCurrentUserEmail() {
-		UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext()
-				.getAuthentication()
-				.getPrincipal();
+    public static String getCurrentUserEmail() {
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-		return userPrincipal.getEmail();
-	}
+        return userPrincipal.getEmail();
+    }
 }

@@ -18,22 +18,22 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 
-	private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-	@Override
-	public void handle(HttpServletRequest request,
-					   HttpServletResponse response,
-					   AccessDeniedException accessDeniedException) throws IOException {
+    @Override
+    public void handle(HttpServletRequest request,
+                       HttpServletResponse response,
+                       AccessDeniedException accessDeniedException) throws IOException {
 
-		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-		response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
 
-		ApiResponse<?> apiResponse = ApiResponse.builder()
-				.status(403)
-				.message("접근 권한이 없습니다.")
-				.result(null)
-				.build();
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .status(403)
+                .message("접근 권한이 없습니다.")
+                .result(null)
+                .build();
 
-		response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
-	}
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+    }
 }
