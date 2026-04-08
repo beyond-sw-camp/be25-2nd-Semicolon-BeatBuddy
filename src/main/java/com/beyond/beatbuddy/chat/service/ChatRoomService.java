@@ -38,16 +38,13 @@ public class ChatRoomService {
 
         if (existingRoom.isPresent()) {
             Long roomId = existingRoom.get().getRoomId();
-
-            // 내가 나갔던 방인지 확인
-            boolean isExited = chatRoomMapper.isMyExited(roomId, loginUserId);
-
-            if (isExited) {
-                // 나갔던 방이면 재활성화
+            if (chatRoomMapper.isMyExited(roomId, loginUserId)) {
                 chatRoomMapper.reactivateMember(roomId, loginUserId);
+                // 상대방도 나갔으면 재활성화
+                if (chatRoomMapper.isMyExited(roomId, opponentUserId)) {
+                    chatRoomMapper.reactivateMember(roomId, opponentUserId);
+                }
             }
-            // 안 나갔으면 그냥 반환 (아무것도 안 함!)
-
             return ApiResponse.of(HttpStatus.OK, "채팅방 조회 성공",
                     chatRoomMapper.findChatRoomInfo(roomId, loginUserId));
         }
