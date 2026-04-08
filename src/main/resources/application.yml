@@ -30,11 +30,6 @@ spring:
       mail.smtp.starttls.enable: true
   config:
     import: application-secret.yml
-  profiles:
-    include: secret
-
-  rapidapi:
-    track-analysis-host: track-analysis.p.rapidapi.com
 
 mybatis:
   type-aliases-package: com.beyond.beatbuddy.*.entity, com.beyond.beatbuddy.global.entity
@@ -65,3 +60,4 @@ spotify:
 app:
   group:
     default-image-url: https://cdn-icons-png.flaticon.com/512/82/82750.png
+
