@@ -34,6 +34,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity /*,
 												   JwtTokenProvider jwtTokenProvider */) throws Exception {
+
         httpSecurity
                 // CSRF 비활성화
                 .csrf(AbstractHttpConfigurer::disable)

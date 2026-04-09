@@ -61,3 +61,5 @@ app:
   group:
     default-image-url: https://cdn-icons-png.flaticon.com/512/82/82750.png
 
+rapidapi:
+  track-analysis-host: track-analysis.p.rapidapi.com

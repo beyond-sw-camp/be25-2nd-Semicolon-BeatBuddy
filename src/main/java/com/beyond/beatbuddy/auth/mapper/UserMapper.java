@@ -2,11 +2,15 @@ package com.beyond.beatbuddy.auth.mapper;
 
 import com.beyond.beatbuddy.global.entity.User;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface UserMapper {
-    // 이메일 중복 확인
-    boolean existsByEmail(String email);
+
+	Boolean findIsTasteAnalyzedByUserId(@Param("userId") Long userId);
+
+	// 이메일 중복 확인
+	boolean existsByEmail(String email);
 
     // 유저 저장
     void save(User user);
