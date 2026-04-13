@@ -68,6 +68,21 @@
         ORDER BY f.updated_at DESC
     </select>
 
+    <!-- 내가 받은 친구 요청 목록 (PENDING, 내가 receiver) -->
+    <select id="findReceivedRequests" resultType="com.beyond.beatbuddy.friend.dto.FriendResponse">
+        SELECT
+            f.friendship_id AS friendshipId,
+            f.requester_id  AS friendId,
+            u.nickname,
+            u.profile_image_url AS profileImageUrl,
+            f.status
+        FROM friendships f
+        JOIN users u ON u.user_id = f.requester_id
+        WHERE f.status = 'PENDING'
+          AND f.receiver_id = #{userId}
+        ORDER BY f.created_at DESC
+    </select>
+
     <!-- 친구 상세 조회 (프로필 + 최애곡 목록) -->
     <resultMap id="FriendDetailResultMap" type="com.beyond.beatbuddy.friend.dto.FriendDetailResponse">
         <id property="friendId" column="friend_id"/>
@@ -81,6 +96,7 @@
             <id     property="musicId"       column="music_id"/>
             <result property="trackName"     column="track_name"/>
             <result property="artistName"    column="artist_name"/>
+            <result property="albumName"     column="album_name"/>
             <result property="albumCoverUrl" column="album_cover_url"/>
         </collection>
     </resultMap>
@@ -101,6 +117,7 @@
             mf.music_id,
             mf.track_name,
             mf.artist_name,
+            al.album_name,
             al.album_cover_url
         FROM users u
         JOIN friendships f ON (
@@ -115,4 +132,3 @@
     </select>
 
 </mapper>
-

@@ -88,4 +88,14 @@ public class FriendController {
         friendService.deleteFriend(myUserId, friendId);
         return ApiResponse.of(HttpStatus.OK, "친구 관계를 성공적으로 삭제했습니다.", null);
     }
+
+    /** FRIEND_007 - 내가 받은 친구 요청 목록 조회 */
+    @Operation(summary = "받은 친구 요청 목록 조회")
+    @GetMapping("/requests/received")
+    public ResponseEntity<ApiResponse<List<FriendResponse>>> getReceivedRequests(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long myUserId = userPrincipal.getUserId();
+        List<FriendResponse> requests = friendService.getReceivedRequests(myUserId);
+        return ApiResponse.of(HttpStatus.OK, "받은 친구 요청 목록 조회 성공", requests);
+    }
 }

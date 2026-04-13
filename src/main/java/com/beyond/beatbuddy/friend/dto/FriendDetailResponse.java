@@ -29,6 +29,7 @@ public class FriendDetailResponse {
         private String musicId;
         private String trackName;
         private String artistName;
+        private String albumName;
         private String albumCoverUrl;
     }
 }

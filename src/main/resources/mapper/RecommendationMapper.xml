@@ -3,6 +3,23 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.beyond.beatbuddy.recommendation.mapper.RecommendationMapper">
 
+    <resultMap id="RecommendationResultMap" type="com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto">
+        <id property="userId" column="userId"/>
+        <result property="nickname" column="nickname"/>
+        <result property="profileImageUrl" column="profileImageUrl"/>
+        <result property="gender" column="gender"/>
+        <result property="birthYear" column="birthYear"/>
+        <result property="similarityScore" column="similarityScore"/>
+        <collection property="favoriteMusicList"
+                    ofType="com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto$FavoriteMusicItem">
+            <id property="musicId" column="musicId"/>
+            <result property="trackName" column="trackName"/>
+            <result property="artistName" column="artistName"/>
+            <result property="albumName" column="albumName"/>
+            <result property="albumCoverUrl" column="albumCoverUrl"/>
+        </collection>
+    </resultMap>
+
     <!-- 내 user_profiles 존재 여부 확인 -->
     <select id="existsUserProfile" resultType="boolean">
         SELECT COUNT(*) > 0
@@ -26,7 +43,7 @@
         5. user_profiles(taste_vector)가 있는 사람만 (취향 분석 완료자)
         6. VEC_DISTANCE로 유사도 순 정렬 (낮을수록 취향이 비슷함)
     -->
-    <select id="findRecommendations" resultType="com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto">
+    <select id="findRecommendations" resultMap="RecommendationResultMap">
         SELECT
             u.user_id           AS userId,
             u.nickname,
@@ -36,10 +53,18 @@
             VEC_DISTANCE(
                 (SELECT taste_vector FROM user_profiles WHERE user_id = #{myUserId}),
                 up.taste_vector
-            ) AS similarityScore
+            ) AS similarityScore,
+            mf.music_id         AS musicId,
+            mf.track_name       AS trackName,
+            mf.artist_name      AS artistName,
+            a.album_name        AS albumName,
+            a.album_cover_url   AS albumCoverUrl
         FROM users u
         JOIN group_members gm ON gm.user_id = u.user_id AND gm.group_id = #{groupId}
         JOIN user_profiles up ON up.user_id = u.user_id
+        LEFT JOIN user_fav_music ufm ON ufm.user_id = u.user_id
+        LEFT JOIN music_features mf ON mf.music_id = ufm.music_id
+        LEFT JOIN albums a ON a.album_id = mf.album_id
         WHERE u.user_id != #{myUserId}
           AND u.status = 'ACTIVE'
           AND u.user_id NOT IN (
@@ -52,7 +77,7 @@
               SELECT viewed_id FROM viewed_profiles WHERE viewer_id = #{myUserId}
           )
           AND (SELECT taste_vector FROM user_profiles WHERE user_id = #{myUserId}) IS NOT NULL
-        ORDER BY similarityScore ASC
+        ORDER BY similarityScore ASC, u.user_id ASC, ufm.fav_id ASC
     </select>
 
 </mapper>
