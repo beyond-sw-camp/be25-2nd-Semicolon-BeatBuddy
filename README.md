@@ -83,18 +83,8 @@
 
 ## 🔧 시스템 아키텍처
 
-```
-[Vue.js Frontend]
-       ↕ HTTP / WebSocket
-[Spring Boot Backend]
-       ↕ MyBatis
-[MySQL Database]
-       
-[외부 API]
-- Spotify API : 곡 검색, 앨범 커버
-- SoundNet API : 음악 특성 데이터
-- Gmail SMTP : 이메일 인증
-```
+> <img width="6337" height="3477" alt="Web App Reference Architecture" src="https://github.com/user-attachments/assets/cdbc3a66-c663-4016-b9c5-fca6e740520d" />
+
 
 ---
 
