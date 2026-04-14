@@ -68,4 +68,8 @@
         WHERE user_id = #{userId}
     </select>
 
+    <select id="findByEmailIncludeDeleted" resultType="User">
+        SELECT * FROM users WHERE email = #{email}
+    </select>
+
 </mapper>

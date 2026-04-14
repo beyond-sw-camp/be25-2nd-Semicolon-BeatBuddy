@@ -1,6 +1,8 @@
 package com.beyond.beatbuddy.auth.mapper;
 
 import com.beyond.beatbuddy.global.entity.User;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -25,4 +27,6 @@ public interface UserMapper {
     void updateStatusDeleted(Long userId);
 
     User findByUserId(Long userId);
+
+	User findByEmailIncludeDeleted(String email);
 }

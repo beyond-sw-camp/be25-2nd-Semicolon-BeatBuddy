@@ -146,7 +146,7 @@ public class AuthService {
 
     public TokenResponse login(LoginRequest request) {
         // 1. 이메일로 유저 조회
-        User user = userMapper.findByEmail(request.getEmail());
+        User user = userMapper.findByEmailIncludeDeleted(request.getEmail());
         if (user == null) {
             throw new NotFoundException("존재하지 않는 이메일입니다.");
         }
