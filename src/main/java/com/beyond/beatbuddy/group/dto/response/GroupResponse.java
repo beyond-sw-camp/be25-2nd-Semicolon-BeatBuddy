@@ -15,4 +15,5 @@ public class GroupResponse {
     private String description;
     private Integer memberCount;
     private String groupImageUrl;
+    private String inviteCode;
 }

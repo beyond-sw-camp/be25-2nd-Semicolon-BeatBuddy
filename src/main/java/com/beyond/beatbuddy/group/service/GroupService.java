@@ -135,6 +135,7 @@ public class GroupService {
                         .description(group.getDescription())
                         .memberCount(group.getMemberCount())
                         .groupImageUrl(group.getGroupImageUrl())
+                        .inviteCode(group.getInviteCode())
                         .build())
                 .collect(Collectors.toList());
     }
