@@ -176,16 +176,6 @@ public class MusicService {
 			System.out.println("분석 성공 trackId = " + track.getTrackId());
 
 			featureList.add(features);
-
-			try {
-				// RapidAPI 무료 플랜이 초당 1건 제한이라 1초 딜레이 - 느려터짐
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// sleep 중에 스레드가 강제 중단됐을 때
-				// interrupt() = 스레드 상태 복구 (안 하면 상태 정보가 사라짐)
-				Thread.currentThread().interrupt();
-				throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "취향 저장 중 오류가 발생했습니다.");
-			}
 		}
 
 		// 분석 전부 성공할 시 저장
