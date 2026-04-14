@@ -35,6 +35,9 @@ public interface FriendMapper {
         // 내 친구 목록 (양방향: 내가 요청자이거나 수신자인 ACCEPTED 목록)
         List<FriendResponse> findFriendsByUserId(@Param("userId") Long userId);
 
+        // 내가 받은 친구 요청 목록 (PENDING, 내가 receiver인 것)
+        List<FriendResponse> findReceivedRequests(@Param("userId") Long userId);
+
         // 친구 상세 조회 (상대방 프로필 + 최애곡 목록)
         FriendDetailResponse findFriendDetail(@Param("myUserId") Long myUserId,
                         @Param("friendId") Long friendId);

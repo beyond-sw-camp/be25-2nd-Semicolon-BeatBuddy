@@ -130,6 +130,14 @@ public class FriendService {
     }
 
     /**
+     * 내가 받은 친구 요청 목록 (PENDING, 내가 receiver인 것)
+     */
+    @Transactional(readOnly = true)
+    public List<FriendResponse> getReceivedRequests(Long userId) {
+        return friendMapper.findReceivedRequests(userId);
+    }
+
+    /**
      * 친구 상세 정보 조회
      * - 상호 ACCEPTED 상태인 친구만 조회 가능 (403)
      * - 해당 유저/친구 관계 미존재 시 (404)
