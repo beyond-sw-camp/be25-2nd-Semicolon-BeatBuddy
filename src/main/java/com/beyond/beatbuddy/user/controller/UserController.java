@@ -5,7 +5,6 @@ import com.beyond.beatbuddy.global.security.UserPrincipal;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequest;
 import com.beyond.beatbuddy.user.dto.request.UpdateChatNotificationRequest;
 import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequest;
-import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
 import com.beyond.beatbuddy.user.dto.request.UpdateSocialNotificationRequest;
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponse;
 import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponse;
@@ -27,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -102,9 +102,12 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> updateProfileImage(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody UpdateProfileImageRequest request) {
+
         userService.updateProfileImage(userPrincipal.getEmail(), request);
+
         return ApiResponse.of(HttpStatus.OK, "프로필 이미지가 변경되었습니다.", null);
     }
+
 
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> withdraw(

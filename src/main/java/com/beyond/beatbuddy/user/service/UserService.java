@@ -3,11 +3,12 @@ package com.beyond.beatbuddy.user.service;
 import com.beyond.beatbuddy.user.dto.request.ChangePasswordRequest;
 import com.beyond.beatbuddy.user.dto.request.UpdateChatNotificationRequest;
 import com.beyond.beatbuddy.user.dto.request.UpdateGroupNicknameRequest;
-import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
 import com.beyond.beatbuddy.user.dto.request.UpdateSocialNotificationRequest;
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponse;
 import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponse;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponse;
+import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
+
 
 public interface UserService {
     UserProfileResponse getMyProfile(String email);
