@@ -110,8 +110,10 @@ public class AuthController {
         // Refresh Token 쿠키 삭제
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
+                .secure(false)
                 .path("/")
                 .maxAge(0)  // 즉시 만료
+                .sameSite("Strict")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
