@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import com.google.common.util.concurrent.RateLimiter;
 
 import java.io.IOException;
 import java.net.URI;
@@ -26,10 +27,12 @@ public class TrackAnalysisService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final HttpClient client = HttpClient.newHttpClient();
+	private final RateLimiter rateLimiter = RateLimiter.create(8.0);
 
 	public TrackAnalysisResponse getFeatures(String spotifyId, String trackName, String artistName) {
-			return requestBySpotifyId(spotifyId);
-		}
+		rateLimiter.acquire();
+		return requestBySpotifyId(spotifyId);
+	}
 
 	// spotifyId 방식
 	private TrackAnalysisResponse requestBySpotifyId(String spotifyId) {
@@ -103,8 +106,10 @@ public class TrackAnalysisService {
 
 			return parsed;
 
-		} catch (IOException | InterruptedException e) {
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "RapidAPI 호출이 중단되었습니다.");
+		} catch (IOException e) {
 			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "RapidAPI 호출 실패: " + e.getMessage());
 		}
 	}
