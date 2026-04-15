@@ -89,7 +89,12 @@ public class AuthService {
     // 인증코드 발송
     public EmailSendResponse sendVerificationCode(String email) {
         // 1. 이미 가입된 이메일인지 확인
-        if (userMapper.existsByEmail(email)) {
+        User user = userMapper.findByEmailIncludeDeleted(email);
+
+        if (user != null) {
+            if (user.getStatus().equals("DELETED")) {
+                throw new UnauthorizedException("탈퇴한 계정입니다.");
+            }
             throw new ConflictException("이미 사용 중인 이메일입니다.");
         }
 
@@ -221,13 +226,30 @@ public class AuthService {
     }
 
     public Boolean checkEmail(String email) {
+        // 1. 이메일로 유저 조회
+        User user = userMapper.findByEmailIncludeDeleted(email);
+
+        if (user == null) {
+            return false;
+        }
+
+        // 2. 탈퇴한 유저 확인
+        if (user.getStatus().equals("DELETED")) {
+            throw new UnauthorizedException("탈퇴한 계정입니다.");
+        }
+
         return userMapper.existsByEmail(email);
     }
 
     public EmailSendResponse sendPasswordResetCode(String email) {
         // 1. 이미 가입된 이메일인지 확인 - 기존의 sendVerificationCode와 반대
-        if (!userMapper.existsByEmail(email)) {
+        User user = userMapper.findByEmailIncludeDeleted(email);
+        if (user == null) {
             throw new NotFoundException("존재하지 않는 이메일입니다.");
+        }
+
+        if (user.getStatus().equals("DELETED")) {
+            throw new UnauthorizedException("탈퇴한 계정입니다.");
         }
 
         // 2. 6자리 랜덤 코드 생성
