@@ -100,7 +100,6 @@
     <update id="withdrawUser">
         UPDATE users
         SET status = 'DELETED',
-            refresh_token = NULL,
             updated_at = NOW()
         WHERE user_id = #{userId}
     </update>
