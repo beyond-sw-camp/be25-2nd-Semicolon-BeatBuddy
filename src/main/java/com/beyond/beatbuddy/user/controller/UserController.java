@@ -26,7 +26,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
+import com.beyond.beatbuddy.global.util.FileStorageService;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
 public class UserController {
 
     private final UserService userService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(
@@ -98,14 +101,25 @@ public class UserController {
         return ApiResponse.of(HttpStatus.OK, "비밀번호가 변경되었습니다.", null);
     }
 
-    @PatchMapping("/me/profile-image")
+    @PatchMapping(value = "/me/profile-image", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<Void>> updateProfileImage(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @Valid @RequestBody UpdateProfileImageRequest request) {
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 
-        userService.updateProfileImage(userPrincipal.getEmail(), request);
+        String profileImageUrl = fileStorageService.saveProfileImage(profileImage);
+
+        userService.updateProfileImage(userPrincipal.getEmail(), profileImageUrl);
 
         return ApiResponse.of(HttpStatus.OK, "프로필 이미지가 변경되었습니다.", null);
+    }
+
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<ApiResponse<Void>> deleteProfileImage(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        userService.updateProfileImage(userPrincipal.getEmail(), "/default-profile.jpg");
+
+        return ApiResponse.of(HttpStatus.OK, "프로필 이미지가 기본 이미지로 변경되었습니다.", null);
     }
 
 

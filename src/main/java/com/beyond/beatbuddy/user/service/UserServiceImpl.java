@@ -1,6 +1,5 @@
 package com.beyond.beatbuddy.user.service;
 
-import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
 import org.springframework.beans.factory.annotation.Value;
 import com.beyond.beatbuddy.global.entity.User;
 import com.beyond.beatbuddy.global.exception.BadRequestException;
@@ -24,8 +23,7 @@ import com.beyond.beatbuddy.global.util.FileStorageService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Base64;
-import java.util.UUID;
+
 
 
 @Service
@@ -117,57 +115,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateProfileImage(String email, UpdateProfileImageRequest request) {
+    public void updateProfileImage(String email, String profileImageUrl) {
         User user = getActiveUserByEmail(email);
         String oldProfileImageUrl = user.getProfileImageUrl();
 
-        String newProfileImageUrl = saveProfileImageFromBase64(request.getProfileImageUrl());
+        myPageMapper.updateProfileImage(user.getUserId(), profileImageUrl);
 
-        myPageMapper.updateProfileImage(user.getUserId(), newProfileImageUrl);
-
-        deleteOldProfileImage(oldProfileImageUrl, newProfileImageUrl);
+        deleteOldProfileImage(oldProfileImageUrl, profileImageUrl);
     }
 
-    private String saveProfileImageFromBase64(String profileImageUrl) {
-        if (profileImageUrl == null || profileImageUrl.isBlank()) {
-            throw new BadRequestException("이미지를 입력해주세요.");
-        }
 
-        if (profileImageUrl.startsWith("/images/profiles/") || profileImageUrl.equals("/default-profile.jpg")) {
-            return profileImageUrl;
-        }
-
-        if (!profileImageUrl.startsWith("data:image/")) {
-            throw new BadRequestException("올바른 이미지 형식이 아닙니다.");
-        }
-
-        int commaIndex = profileImageUrl.indexOf(",");
-        if (commaIndex == -1) {
-            throw new BadRequestException("올바른 base64 이미지 형식이 아닙니다.");
-        }
-
-        String metaData = profileImageUrl.substring(0, commaIndex);
-        String base64Data = profileImageUrl.substring(commaIndex + 1);
-
-        String extension = getImageExtension(metaData);
-        String savedFilename = UUID.randomUUID() + extension;
-
-        File dir = new File(profileUploadDir).getAbsoluteFile();
-        dir.mkdirs();
-
-        File dest = new File(dir, savedFilename);
-
-        try {
-            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-            Files.write(dest.toPath(), imageBytes);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("base64 디코딩에 실패했습니다.");
-        } catch (IOException e) {
-            throw new RuntimeException("프로필 이미지 저장에 실패했습니다.", e);
-        }
-
-        return "/images/profiles/" + savedFilename;
-    }
 
     private void deleteOldProfileImage(String oldProfileImageUrl, String newProfileImageUrl) {
         if (oldProfileImageUrl == null || oldProfileImageUrl.isBlank()) {
@@ -196,21 +153,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private String getImageExtension(String metaData) {
-        if (metaData.contains("image/png")) {
-            return ".png";
-        }
 
-        if (metaData.contains("image/jpeg") || metaData.contains("image/jpg")) {
-            return ".jpg";
-        }
-
-        if (metaData.contains("image/webp")) {
-            return ".webp";
-        }
-
-        throw new BadRequestException("지원하지 않는 이미지 형식입니다.");
-    }
 
     @Override
     public void withdraw(String email, String bearerToken) {

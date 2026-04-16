@@ -7,7 +7,6 @@ import com.beyond.beatbuddy.user.dto.request.UpdateSocialNotificationRequest;
 import com.beyond.beatbuddy.user.dto.response.UserGroupNicknameListResponse;
 import com.beyond.beatbuddy.user.dto.response.UserNotificationSettingResponse;
 import com.beyond.beatbuddy.user.dto.response.UserProfileResponse;
-import com.beyond.beatbuddy.user.dto.request.UpdateProfileImageRequest;
 
 
 public interface UserService {
@@ -25,7 +24,7 @@ public interface UserService {
 
     void updateGroupNickname(String email, Long groupId, UpdateGroupNicknameRequest request);
 
-    void updateProfileImage(String email, UpdateProfileImageRequest request);
+    void updateProfileImage(String email, String profileImageUrl);
 
     void withdraw(String email, String bearerToken);
 }
