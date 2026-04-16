@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -28,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 import java.util.Map;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -122,10 +123,9 @@ public class AuthController {
 
     // refresh
     @PostMapping("/token/refresh")
-    @Operation(summary = "리프레쉬", description = "refresh token으로 accestoken 재발급")
+    @Operation(summary = "리프레쉬", description = "refresh token으로 accesstoken 재발급")
     public ResponseEntity<?> refreshToken(
             @CookieValue(name = "refreshToken", required = false)String refreshToken) {
-
         if (refreshToken == null) {
             throw new UnauthorizedException("Refresh Token이 없습니다.");
         }

@@ -31,6 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         log.info("Filter 실행: {}", request.getRequestURI());
+
+        if (request.getRequestURI().equals("/api/v1/auth/token/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String bearerToken = request.getHeader("Authorization");
         log.info("bearerToken: {}", bearerToken);
 
