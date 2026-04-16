@@ -56,6 +56,9 @@ public class FileStorageService {
 
     // 파일 저장 공통 로직
     private String save(MultipartFile file, String uploadDir, String urlPrefix) {
+        // 검증
+        FileValidationUtils.validateImageFile(file);
+
         String originalFilename = file.getOriginalFilename();
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String savedFilename = UUID.randomUUID() + extension;

@@ -17,8 +17,8 @@ spring:
       port: 6379
   servlet:
     multipart:
-      max-file-size: 5MB        # 프로필 사진 업로드용
-      max-request-size: 5MB
+      max-file-size: 10MB        # 프로필 사진 업로드용
+      max-request-size: 10MB
   mail:
     default-encoding: UTF-8
     host: smtp.gmail.com
