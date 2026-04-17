@@ -46,6 +46,13 @@
 
 ---
 
+## 🔧 시스템 아키텍처
+
+> <img width="6337" height="3477" alt="Web App Reference Architecture" src="https://github.com/user-attachments/assets/cdbc3a66-c663-4016-b9c5-fca6e740520d" />
+
+
+---
+
 ## 📋 요구사항 명세서
 > [요구사항 명세서](https://docs.google.com/spreadsheets/d/1bW-t6EJQ1NW_uqkoiAgVqqeyeDuuh2muPwpv8ee4Y2s/edit?usp=sharing)
 
