@@ -34,4 +34,7 @@ public interface MusicMapper {
 						  @Param("tasteVector") String tasteVector);
 
 	void updateIsTasteAnalyzed(@Param("userId") Long userId);
+
+	// trackId로 기존 분석 결과 조회
+	TrackAnalysisResponse findFeaturesByTrackId(@Param("trackId") String trackId);
 }
