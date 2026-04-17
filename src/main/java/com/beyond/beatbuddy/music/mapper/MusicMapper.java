@@ -24,8 +24,14 @@ public interface MusicMapper {
 
 	List<TasteResponse.TrackInfo> findTasteTracksByUserId(@Param("userId") Long userId);
 
-	void upsertUserProfile(@Param("userId") Long userId,
-						   @Param("tasteVector") String tasteVector);
+	// void upsertUserProfile(@Param("userId") Long userId,
+	// 					   @Param("tasteVector") String tasteVector);
+
+	int insertUserProfileIgnore(@Param("userId") Long userId,
+								@Param("tasteVector") String tasteVector);
+
+	int updateUserProfile(@Param("userId") Long userId,
+						  @Param("tasteVector") String tasteVector);
 
 	void updateIsTasteAnalyzed(@Param("userId") Long userId);
 }

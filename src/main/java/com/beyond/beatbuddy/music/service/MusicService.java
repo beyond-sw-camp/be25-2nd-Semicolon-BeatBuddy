@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.UncategorizedSQLException;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
@@ -207,11 +208,36 @@ public class MusicService {
 
 		// user_profiles 테이블에 저장
 		// upsert = 없으면 INSERT, 있으면 UPDATE
-		musicMapper.upsertUserProfile(userId, tasteVector);
+		// musicMapper.upsertUserProfile(userId, tasteVector);
 
+		// user_profiles 저장 시 1020 충돌 1회 재시도
+		saveUserProfileWithRetry(userId, tasteVector);
 		// users 테이블의 is_taste_analyzed = true
 		// 취향 탭 진입 시 이 값으로 편집모드 / 프로필모드 분기 : 중요!!
 		musicMapper.updateIsTasteAnalyzed(userId);
+	}
+
+	// user_profiles 저장 시 1020 에러가 나면 1회 재시도
+	private void saveUserProfileWithRetry(Long userId, String tasteVector) {
+		try {
+			saveUserProfile(userId, tasteVector);
+		} catch (UncategorizedSQLException e) {
+			if (e.getSQLException() != null && e.getSQLException().getErrorCode() == 1020) {
+				System.out.println("1020 충돌 발생 - user_profiles 저장 1회 재시도");
+				saveUserProfile(userId, tasteVector);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	// user_profiles 저장 실제 로직
+	private void saveUserProfile(Long userId, String tasteVector) {
+		int inserted = musicMapper.insertUserProfileIgnore(userId, tasteVector);
+
+		if (inserted == 0) {  // INSERT IGNORE -> 이미 존재하면 0 반환
+			musicMapper.updateUserProfile(userId, tasteVector);
+		}
 	}
 
 	private void validateSpotifyTrack(String trackId) {
