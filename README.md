@@ -44,22 +44,49 @@
 
 그룹 안에서만 추천이 이루어지므로, 불특정 다수와의 무작위 연결이 아닌 신뢰할 수 있는 환경에서 친구를 사귈 수 있습니다.
 
+---
+
+## 📑 요구사항 분석
+
+### 🎵 1. 음악 취향 분석
+- 최애곡 10곡 선택 (Spotify API 연동)
+- 곡별 음악 특성 수집 (SoundNet API)
+- 16차원 취향 벡터 생성 및 저장
+- 취향 프로필 조회 및 수정
+
+### 👤 2. 사용자 기능
+- 이메일 회원가입 / 로그인 (JWT)
+- 이메일 인증 (Gmail SMTP)
+- 비밀번호 찾기 / 변경
+- 프로필 관리 및 회원탈퇴
+
+### 👥 3. 그룹 기능
+- 그룹 생성
+- 초대 코드 기반 그룹 가입
+- 그룹 내 취향 기반 친구 추천 (유클리드 거리)
+- 추천 프로필 조회 (넘기기 / 친구 신청)
+
+### 🤝 4. 친구 기능
+- 친구 신청 / 수락 / 거절
+- 친구 목록 조회 및 검색
+- 친구 프로필 및 최애곡 확인
+- 친구 삭제
+
+### 💬 5. 채팅
+- 1:1 실시간 채팅 (WebSocket)
+- 채팅방 목록 및 안읽은 메시지 수 표시
+- 채팅방 나가기
+
+### 🔔 6. 알림
+- 친구 신청 / 수락 알림
+
+---
 
 
 ## 🔧 시스템 아키텍처
 
-```
-[Vue.js Frontend]
-       ↕ HTTP / WebSocket
-[Spring Boot Backend]
-       ↕ MyBatis
-[MariaDB Database]
-       
-[외부 API]
-- Spotify API : 곡 검색, 앨범 커버
-- SoundNet API : 음악 특성 데이터
-- Gmail SMTP : 이메일 인증
-```
+> <img width="6337" height="3477" alt="Web App Reference Architecture" src="https://github.com/user-attachments/assets/cdbc3a66-c663-4016-b9c5-fca6e740520d" />
+
 
 ---
 
@@ -122,14 +149,14 @@
 
 | 구분 | 기술 |
 |------|------|
-| Frontend | Vue.js |
-| Backend | Spring Boot |
-| Database | MariaDB |
-| ORM | MyBatis |
-| 인증 | JWT |
-| 이메일 | Gmail SMTP |
-| 실시간 채팅 | WebSocket (STOMP) |
-| 외부 API | Spotify API, SoundNet API |
+| Frontend | ![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white) |
+| Backend | ![SpringBoot](https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white) |
+| Database | ![MariaDB](https://img.shields.io/badge/MariaDB(MySQL)-003545?style=for-the-badge&logo=mariadb&logoColor=white) |
+| ORM | ![MyBatis](https://img.shields.io/badge/MyBatis-000000?style=for-the-badge) |
+| 인증 | ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white) |
+| 이메일 | ![Gmail](https://img.shields.io/badge/GmailSMTP-EA4335?style=for-the-badge&logo=gmail&logoColor=white) |
+| 실시간 채팅 | ![WebSocket](https://img.shields.io/badge/WebSocket(STOMP)-010101?style=for-the-badge) |
+| 외부 API | ![Spotify](https://img.shields.io/badge/SpotifyAPI-1DB954?style=for-the-badge&logo=spotify&logoColor=white)&nbsp;![RapidAPI](https://img.shields.io/badge/RapidAPI-0055DA?style=for-the-badge&logo=rapid&logoColor=white) |
 
 ---
 
