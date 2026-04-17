@@ -39,7 +39,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class MusicService {
-
+	private final UserProfileService userProfileService;
 	private final MusicMapper musicMapper;                     // DB 쿼리 담당 인터페이스
 	private final TrackAnalysisService trackAnalysisService;   // RapidAPI 호출 담당
 	private final UserMapper userMapper;
@@ -161,7 +161,7 @@ public class MusicService {
 
 		// RapidAPI(음악 분석 API)에서 가져온 각 곡의 음악적 특성 저장용 리스트
 		// DB 먼저 조회하고 없는 곡만 RapidAPI 병렬 호출
-		List<TrackAnalysisResponse> featureList = tracks.parallelStream()
+		List<TrackAnalysisResponse> featureList = tracks.stream()
 				.map(track -> {
 
 					TrackAnalysisResponse cachedFeatures =
@@ -219,7 +219,8 @@ public class MusicService {
 		// musicMapper.upsertUserProfile(userId, tasteVector);
 
 		// user_profiles 저장 시 1020 충돌 1회 재시도
-		saveUserProfileWithRetry(userId, tasteVector);
+		// saveUserProfileWithRetry(userId, tasteVector);
+		userProfileService.saveWithRetry(userId, tasteVector);
 		// users 테이블의 is_taste_analyzed = true
 		// 취향 탭 진입 시 이 값으로 편집모드 / 프로필모드 분기 : 중요!!
 		musicMapper.updateIsTasteAnalyzed(userId);
