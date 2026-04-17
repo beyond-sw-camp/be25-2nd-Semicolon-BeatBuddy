@@ -34,4 +34,6 @@ public interface ChatMessageMapper {
 
     // 전송한 메시지 반환
     ChatMessageResponse findById(@Param("messageId") Long messageId);
+
+    void lockChatRoom(Long roomId);
 }

@@ -62,4 +62,11 @@
         WHERE room_id = #{roomId}
     </select>
 
+    <select id="lockChatRoom" resultType="long">
+        SELECT room_id
+        FROM chat_rooms
+        WHERE room_id = #{roomId}
+            FOR UPDATE
+    </select>
+
 </mapper>

@@ -17,6 +17,7 @@ public class ChatMessageService {
 
     public ChatMessageResponse sendMessage(Long roomId, Long senderId, String messageText) {
 
+        chatMessageMapper.lockChatRoom(roomId);
         // 1. 메시지 저장
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setRoomId(roomId);
