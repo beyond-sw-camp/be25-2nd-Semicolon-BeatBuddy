@@ -40,7 +40,12 @@ public class FileStorageService {
 
     // 프로필 사진 저장
     public String saveProfileImage(MultipartFile file) {
+        System.out.println("saveProfileImage 진입");
+        System.out.println("file == null ? " + (file == null));
+        System.out.println("file.isEmpty() ? " + (file != null && file.isEmpty()));
+
         if (file == null || file.isEmpty()) {
+            System.out.println("기본 이미지 반환: " + defaultProfileImage);
             return defaultProfileImage;
         }
         return save(file, profileUploadDir, "/images/profiles/");

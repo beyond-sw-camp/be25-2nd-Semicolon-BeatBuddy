@@ -134,7 +134,7 @@ public class MusicService {
 		if (Boolean.TRUE.equals(isTasteAnalyzed)) {
 			throw new BusinessException(
 					HttpStatus.BAD_REQUEST,
-					"이미 취향이 저장된 사용자입니다. 수정은 PUT /api/v1/music/taste를 사용해주세요."
+					"이미 취향이 저장된 사용자입니다. 수정 기능을 사용해주세요."
 			);
 		}
 
