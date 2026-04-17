@@ -106,7 +106,13 @@ public class UserController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 
+        System.out.println("profileImage null 여부 = " + (profileImage == null));
+        System.out.println("profileImage isEmpty = " + (profileImage != null && profileImage.isEmpty()));
+        System.out.println("profileImage originalFilename = " + (profileImage != null ? profileImage.getOriginalFilename() : "null"));
+
         String profileImageUrl = fileStorageService.saveProfileImage(profileImage);
+
+        System.out.println("저장된 profileImageUrl = " + profileImageUrl);
 
         userService.updateProfileImage(userPrincipal.getEmail(), profileImageUrl);
 
