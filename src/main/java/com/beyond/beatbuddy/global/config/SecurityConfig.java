@@ -93,6 +93,8 @@ public class SecurityConfig {
         // 어떤 주소에서 오는 요청 허용할지
         config.addAllowedOrigin("http://localhost:5173"); // Vue 기본 포트
         // 어떤 HTTP 메서드 허용할지
+        config.addAllowedOriginPattern("*.trycloudflare.com");
+
         config.addAllowedMethod("*");  // GET, POST, PUT, DELETE 전부
         // 어떤 헤더 허용할지
         config.addAllowedHeader("*"); // Authorization 등 전부
