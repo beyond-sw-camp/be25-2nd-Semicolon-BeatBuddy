@@ -152,6 +152,7 @@ public class MusicService {
 		saveTasteInternal(userId, request);
 	}
 
+	// track 분석 속도 완화
 	private void saveTasteInternal(Long userId, SaveTasteRequest request) {
 		// track 목록
 		List<SaveTasteRequest.TrackInfo> tracks = request.getTracks();
@@ -159,25 +160,32 @@ public class MusicService {
 		validateDuplicateTracks(tracks);  // 중복 곡 검사
 
 		// RapidAPI(음악 분석 API)에서 가져온 각 곡의 음악적 특성 저장용 리스트
-		List<TrackAnalysisResponse> featureList = new ArrayList<>();
+		// DB 먼저 조회하고 없는 곡만 RapidAPI 병렬 호출
+		List<TrackAnalysisResponse> featureList = tracks.parallelStream()
+				.map(track -> {
 
-		// 분석 먼저
-		for (SaveTasteRequest.TrackInfo track : tracks) {
-			System.out.println("분석 시작 trackId = " + track.getTrackId());
+					TrackAnalysisResponse cachedFeatures =
+							musicMapper.findFeaturesByTrackId(track.getTrackId());
 
-			validateSpotifyTrack(track.getTrackId());
+					if (cachedFeatures != null) {
+						// DB에 있으면 RapidAPI 호출 없이 즉시 반환
+						System.out.println("DB 캐시 히트 - RapidAPI 호출 스킵: " + track.getTrackId());
+						return cachedFeatures;
+					}
 
-			// RapidAPI로 트랙 하나의 음악적 특성 가져오기 (energy, danceability 등 8개)
-			TrackAnalysisResponse features = trackAnalysisService.getFeatures(
-					track.getTrackId(),
-					track.getTrackName(),
-					track.getArtistName()
-			);
+					// DB에 없을 때만 RapidAPI 호출
+					System.out.println("분석 시작 trackId = " + track.getTrackId());
 
-			System.out.println("분석 성공 trackId = " + track.getTrackId());
+					TrackAnalysisResponse features = trackAnalysisService.getFeatures(
+							track.getTrackId(),
+							track.getTrackName(),
+							track.getArtistName()
+					);
 
-			featureList.add(features);
-		}
+					System.out.println("분석 성공 trackId = " + track.getTrackId());
+					return features;
+				})
+				.collect(Collectors.toList());
 
 		// 분석 전부 성공할 시 저장
 		for (int i = 0; i < tracks.size(); i++) {

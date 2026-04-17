@@ -133,4 +133,20 @@
         WHERE user_id = #{userId}
     </update>
 
+    <!-- trackId로 음악 특성 조회 -->
+    <select id="findFeaturesByTrackId" resultType="com.beyond.beatbuddy.music.dto.response.TrackAnalysisResponse">
+        SELECT
+            music_id AS trackId,
+            popularity,
+            energy,
+            danceability,
+            happiness,
+            acousticness,
+            instrumentalness,
+            liveness,
+            speechiness
+        FROM music_features
+        WHERE music_id = #{trackId}
+    </select>
+
 </mapper>
