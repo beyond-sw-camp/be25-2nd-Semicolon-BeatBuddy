@@ -113,7 +113,7 @@
 
 ## 🧪 테스트 계획 및 결과 보고서
 
-> [테스트 계획 및 결과 보고서] [Google Sheet 링크 추가 예정](https://docs.google.com/spreadsheets/d/1_yQBYho9SeX9E9EfWcyGfwN5yh79QyOxMhvVj6B-Qds/edit?gid=908489767#gid=908489767)
+> [테스트 계획 및 결과 보고서](https://docs.google.com/spreadsheets/d/1_yQBYho9SeX9E9EfWcyGfwN5yh79QyOxMhvVj6B-Qds/edit?gid=908489767#gid=908489767)
 
 ---
 
