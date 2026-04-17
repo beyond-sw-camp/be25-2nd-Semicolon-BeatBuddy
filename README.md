@@ -46,50 +46,6 @@
 
 ---
 
-## 📑 요구사항 분석
-
-### 🎵 1. 음악 취향 분석
-- 최애곡 10곡 선택 (Spotify API 연동)
-- 곡별 음악 특성 수집 (SoundNet API)
-- 16차원 취향 벡터 생성 및 저장
-- 취향 프로필 조회 및 수정
-
-### 👤 2. 사용자 기능
-- 이메일 회원가입 / 로그인 (JWT)
-- 이메일 인증 (Gmail SMTP)
-- 비밀번호 찾기 / 변경
-- 프로필 관리 및 회원탈퇴
-
-### 👥 3. 그룹 기능
-- 그룹 생성
-- 초대 코드 기반 그룹 가입
-- 그룹 내 취향 기반 친구 추천 (유클리드 거리)
-- 추천 프로필 조회 (넘기기 / 친구 신청)
-
-### 🤝 4. 친구 기능
-- 친구 신청 / 수락 / 거절
-- 친구 목록 조회 및 검색
-- 친구 프로필 및 최애곡 확인
-- 친구 삭제
-
-### 💬 5. 채팅
-- 1:1 실시간 채팅 (WebSocket)
-- 채팅방 목록 및 안읽은 메시지 수 표시
-- 채팅방 나가기
-
-### 🔔 6. 알림
-- 친구 신청 / 수락 알림
-
----
-
-
-## 🔧 시스템 아키텍처
-
-> <img width="6337" height="3477" alt="Web App Reference Architecture" src="https://github.com/user-attachments/assets/cdbc3a66-c663-4016-b9c5-fca6e740520d" />
-
-
----
-
 ## 📋 요구사항 명세서
 > [요구사항 명세서](https://docs.google.com/spreadsheets/d/1bW-t6EJQ1NW_uqkoiAgVqqeyeDuuh2muPwpv8ee4Y2s/edit?usp=sharing)
 
