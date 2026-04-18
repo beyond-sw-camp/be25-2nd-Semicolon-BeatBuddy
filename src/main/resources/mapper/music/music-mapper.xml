@@ -123,7 +123,7 @@
         UPDATE user_profiles
         SET taste_vector = VEC_FromText(#{tasteVector}),
             updated_at = CURRENT_TIMESTAMP
-        WHERE user_id - #{userId}
+        WHERE user_id = #{userId}
     </update>
 
     <!-- 취향 분석 완료 표시 -->
