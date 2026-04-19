@@ -14,6 +14,7 @@ import java.util.List;
 public class RecommendationResponseDto {
     private Long userId;
     private String nickname;
+    private String groupNickname;
     private String profileImageUrl;
     private String gender;
     private Integer birthYear;
