@@ -29,7 +29,7 @@ public class ChatRoomService {
     private final ChatRoomMapper chatRoomMapper;
 
     // 채팅방 조회 or 생성
-    public ResponseEntity<ApiResponse<ChatRoomResponse>> createChatRoom(Long loginUserId, Long opponentUserId) {
+    public ResponseEntity<ApiResponse<ChatRoomResponse>> createChatRoom(Long loginUserId, Long opponentUserId, Long groupId) {
         if (loginUserId.equals(opponentUserId)) {
             throw new BadRequestException("자기 자신에게 채팅을 보낼 수 없습니다.");
         }
@@ -51,6 +51,7 @@ public class ChatRoomService {
 
         // 새 채팅방 생성
         ChatRoom newRoom = new ChatRoom();
+        newRoom.setGroupId(groupId);
         newRoom.setUserAId(Math.min(loginUserId, opponentUserId));
         newRoom.setUserBId(Math.max(loginUserId, opponentUserId));
         chatRoomMapper.insertChatRoom(newRoom);

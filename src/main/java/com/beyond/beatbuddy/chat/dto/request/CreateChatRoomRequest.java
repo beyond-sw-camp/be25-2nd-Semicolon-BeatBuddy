@@ -6,5 +6,6 @@ import lombok.Getter;
 public class CreateChatRoomRequest {
 
     private Long opponentUserId;
+    private Long groupId;
 
 }

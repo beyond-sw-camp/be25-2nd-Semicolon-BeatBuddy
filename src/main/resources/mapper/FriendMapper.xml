@@ -59,23 +59,19 @@
             f.friendship_id   AS friendshipId,
             CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END AS friendId,
             u.nickname,
-            (
-                SELECT gm2.group_nickname
-                FROM group_members gm1
-                JOIN group_members gm2 ON gm1.group_id = gm2.group_id
-                WHERE gm1.user_id = #{userId}
-                  AND gm2.user_id = CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END
-                LIMIT 1
-            ) AS groupNickname,
+            gm2.group_nickname AS groupNickname,
+            gm1.group_id AS groupId,
             u.profile_image_url AS profileImageUrl,
             f.status
         FROM friendships f
-        JOIN users u ON u.user_id = CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END
+                 JOIN users u ON u.user_id = CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END
+                 JOIN group_members gm1 ON gm1.user_id = #{userId}
+                 JOIN group_members gm2 ON gm2.group_id = gm1.group_id
+            AND gm2.user_id = CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END
         WHERE f.status = 'ACCEPTED'
           AND (f.requester_id = #{userId} OR f.receiver_id = #{userId})
         ORDER BY f.updated_at DESC
     </select>
-
     <!-- 내가 받은 친구 요청 목록 (PENDING, 내가 receiver) -->
     <select id="findReceivedRequests" resultType="com.beyond.beatbuddy.friend.dto.FriendResponse">
         SELECT

@@ -7,6 +7,7 @@
         <id property="roomId" column="room_id"/>
         <result property="userAId" column="user_a_id"/>
         <result property="userBId" column="user_b_id"/>
+        <result property="groupId" column="group_id"/>
         <result property="lastMessageId" column="last_message_id"/>
         <result property="lastMessageText" column="last_message_text"/>
         <result property="lastMessageAt" column="last_message_at"/>
@@ -41,7 +42,7 @@
 
     <!-- 채팅방 조회 (is_exited 조건 제거) -->
     <select id="findRoomByUsers" resultMap="ChatRoomResultMap">
-        SELECT room_id, user_a_id, user_b_id, last_message_id, last_message_text, last_message_at, created_at
+        SELECT room_id, user_a_id, user_b_id, group_id, last_message_id, last_message_text, last_message_at, created_at
         FROM chat_rooms
         WHERE user_a_id = LEAST(#{loginUserId}, #{opponentUserId})
           AND user_b_id = GREATEST(#{loginUserId}, #{opponentUserId})
@@ -49,8 +50,8 @@
 
     <!-- 채팅방 생성 -->
     <insert id="insertChatRoom" useGeneratedKeys="true" keyProperty="roomId">
-        INSERT INTO chat_rooms (user_a_id, user_b_id, created_at)
-        VALUES (LEAST(#{userAId}, #{userBId}), GREATEST(#{userAId}, #{userBId}), NOW())
+        INSERT INTO chat_rooms (group_id, user_a_id, user_b_id, created_at)
+        VALUES (#{groupId}, LEAST(#{userAId}, #{userBId}), GREATEST(#{userAId}, #{userBId}), NOW())
     </insert>
 
     <!-- 멤버 생성 -->
@@ -139,7 +140,7 @@
         SELECT
             m.message_id,
             m.sender_id,
-            u.nickname AS sender_nickname,
+            gm.group_nickname AS sender_nickname,
             m.message_text,
             m.created_at,
             CASE
@@ -155,6 +156,9 @@
                 END AS unread_marker
         FROM chat_messages m
                  JOIN users u ON u.user_id = m.sender_id
+                 JOIN chat_rooms r ON r.room_id = m.room_id
+                 JOIN group_members gm ON gm.group_id = r.group_id
+            AND gm.user_id = m.sender_id
         WHERE m.room_id = #{roomId}
           AND (
             #{rejoinedAt} IS NULL
@@ -185,7 +189,7 @@
                 WHEN r.user_a_id = #{loginUserId} THEN r.user_b_id
                 ELSE r.user_a_id
                 END AS opponent_user_id,
-            u.nickname AS opponent_nickname,
+            gm.group_nickname AS opponent_nickname,
             u.profile_image_url AS opponent_profile_image_url,
             r.last_message_text,
             r.last_message_at,
@@ -196,6 +200,11 @@
             WHEN r.user_a_id = #{loginUserId} THEN r.user_b_id
             ELSE r.user_a_id
         END
+        JOIN group_members gm ON gm.group_id = r.group_id
+            AND gm.user_id = CASE
+                WHEN r.user_a_id = #{loginUserId} THEN r.user_b_id
+                ELSE r.user_a_id
+            END
         WHERE m.user_id = #{loginUserId}
             AND m.is_exited = FALSE
             AND r.last_message_at IS NOT NULL

@@ -13,6 +13,7 @@ public class FriendResponse {
     private Long friendshipId;
     private Long friendId; // 상대방 userId
     private String nickname;
+    private Integer groupId;
     private String groupNickname;
     private String profileImageUrl;
     private String status; // PENDING | ACCEPTED

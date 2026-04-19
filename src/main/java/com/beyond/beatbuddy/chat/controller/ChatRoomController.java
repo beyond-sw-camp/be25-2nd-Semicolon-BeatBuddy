@@ -39,7 +39,7 @@ public class ChatRoomController {
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createChatRoom(
             @RequestBody CreateChatRoomRequest request) {
         Long loginUserId = AuthUtil.getCurrentUserId();
-        return chatRoomService.createChatRoom(loginUserId, request.getOpponentUserId());
+        return chatRoomService.createChatRoom(loginUserId, request.getOpponentUserId(), request.getGroupId());
     }
 
     //.채팅방 입장

@@ -15,6 +15,7 @@ public class ChatRoom {
     private Long roomId;
     private Long userAId;
     private Long userBId;
+    private Long groupId;
     private Long lastMessageId;
     private String lastMessageText;
     private LocalDateTime lastMessageAt;
