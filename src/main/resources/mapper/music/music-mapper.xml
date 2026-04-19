@@ -75,6 +75,17 @@
         )
     </insert>
 
+    <insert id="insertUserFavMusicBatch">
+        INSERT INTO user_fav_music(
+                                   user_id,
+                                   music_id
+        )
+        VALUES
+        <foreach collection="musicIds" item="musicId" separator=",">
+            (#{userId}, #{musicId})
+        </foreach>
+    </insert>
+
     <!-- 유저가 저장한 최애곡 전체 삭제 -->
     <delete id="deleteUserFavMusic">
         DELETE FROM user_fav_music
@@ -147,6 +158,25 @@
             speechiness
         FROM music_features
         WHERE music_id = #{trackId}
+    </select>
+
+    <!-- [수정] 여러 곡 캐시 한 번에 조회 -->
+    <select id="findFeaturesByTrackIds" resultType="com.beyond.beatbuddy.music.dto.response.TrackAnalysisResponse">
+        SELECT
+        music_id AS trackId,
+        popularity,
+        energy,
+        danceability,
+        happiness,
+        acousticness,
+        instrumentalness,
+        liveness,
+        speechiness
+        FROM music_features
+        WHERE music_id IN
+        <foreach collection="trackIds" item="trackId" open="(" separator="," close=")">
+            #{trackId}
+        </foreach>
     </select>
 
 </mapper>

@@ -35,6 +35,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +50,9 @@ public class MusicService {
 	private final MusicMapper musicMapper;                     // DB 쿼리 담당 인터페이스
 	private final TrackAnalysisService trackAnalysisService;   // RapidAPI 호출 담당
 	private final UserMapper userMapper;
+
+	// DB 저장 전용 서비스 추가
+	private final MusicPersistenceService musicPersistenceService;
 
 	@Value("${rapidapi.track-analysis-host}")
 	private String trackAnalysisHost;                          // application-secret.yml에서 주입
@@ -55,6 +65,9 @@ public class MusicService {
 
 	@Value("${spotify.client-secret}")
 	private String clientSecret;                               // application-secret.yml에서 주입
+
+	// 제한 병렬 개수
+	private static final int ANALYSIS_THREAD_COUNT = 4;
 
 	// Spotify API 호출 시 필요한 액세스 토큰 발급하는 거 - 안 보셔도 됨
 	private String getAccessToken() {
@@ -125,7 +138,7 @@ public class MusicService {
 
 	// @Transactional: 메서드 전체가 하나의 트랜잭션 - DB 수업에서 배운 거라 보시면 됨, JAVA 수업에서도 했고
 	// 중간에 예외 발생 시 앞에서 성공한 INSERT들도 전부 롤백
-	@Transactional
+	// @Transactional
 	public void saveTaste(SaveTasteRequest request) {
 		// JWT에서 현재 로그인한 사용자 ID 추출
 		Long userId = AuthUtil.getCurrentUserId();
@@ -139,115 +152,228 @@ public class MusicService {
 			);
 		}
 
-		saveTasteInternal(userId, request);
+		// saveTasteInternal(userId, request);
+		// 먼저 부석/캐시조회/벡터계산 완료
+		PreparedTasteData prepared = prepareTasteData(request);
 
+		// 실제 DB 저장만 별도 트랜잭션 서비스에서 처리
+		musicPersistenceService.saveNewTaste(
+				userId,
+				prepared.tracks(),
+				prepared.featureMap(),
+				prepared.tasteVector()
+		);
 	}
 
-	@Transactional
+	// @Transactional
 	public void updateTaste(SaveTasteRequest request) {
 		Long userId = AuthUtil.getCurrentUserId();
 
-		musicMapper.deleteUserFavMusic(userId);
+		// musicMapper.deleteUserFavMusic(userId);
 
-		saveTasteInternal(userId, request);
+		// saveTasteInternal(userId, request);
+
+
+		// 먼저 분석/캐시조회/벡터계산 완료
+		PreparedTasteData prepared = prepareTasteData(request);
+
+		// 삭제 + 저장을 DB 저장 서비스에서 처리
+		musicPersistenceService.updateExistingTaste(
+				userId,
+				prepared.tracks(),
+				prepared.featureMap(),
+				prepared.tasteVector()
+		);
 	}
 
 	// track 분석 속도 완화
-	private void saveTasteInternal(Long userId, SaveTasteRequest request) {
+	// private void saveTasteInternal(Long userId, SaveTasteRequest request) {
+
+	// 기존 saveTasteInternal 역할 분리
+	// 외부 API 호출 / 캐시 조회 / 벡터 계산만 담당
+	private PreparedTasteData prepareTasteData(SaveTasteRequest request) {
 		// track 목록
 		List<SaveTasteRequest.TrackInfo> tracks = request.getTracks();
 		validateTrackCount(tracks);  // 10곡 검사
 		validateDuplicateTracks(tracks);  // 중복 곡 검사
 
-		// RapidAPI(음악 분석 API)에서 가져온 각 곡의 음악적 특성 저장용 리스트
-		// DB 먼저 조회하고 없는 곡만 RapidAPI 병렬 호출
-		List<TrackAnalysisResponse> featureList = tracks.stream()
-				.map(track -> {
+		// trackId 여러 개를 한 번에 캐시 조회
+		Map<String, TrackAnalysisResponse> cachedFeatureMap = loadCachedFeatures(tracks);
 
-					TrackAnalysisResponse cachedFeatures =
-							musicMapper.findFeaturesByTrackId(track.getTrackId());
+		// 캐시에 없는 곡만 제한 병렬 분석
+		Map<String, TrackAnalysisResponse> fetchedFeatureMap =
+				fetchMissingFeaturesInParallel(tracks, cachedFeatureMap);
 
-					if (cachedFeatures != null) {
-						// DB에 있으면 RapidAPI 호출 없이 즉시 반환
-						System.out.println("DB 캐시 히트 - RapidAPI 호출 스킵: " + track.getTrackId());
-						return cachedFeatures;
-					}
+		// 입력 순서 유지하면서 featureMap 병합
+		Map<String, TrackAnalysisResponse> mergedFeatureMap = new LinkedHashMap<>();
+		for (SaveTasteRequest.TrackInfo track : tracks) {
+			TrackAnalysisResponse features = cachedFeatureMap.get(track.getTrackId());
+			if (features == null) {
+				features = fetchedFeatureMap.get(track.getTrackId());
+			}
+			mergedFeatureMap.put(track.getTrackId(), features);
+		}
 
-					// DB에 없을 때만 RapidAPI 호출
-					System.out.println("분석 시작 trackId = " + track.getTrackId());
+		List<TrackAnalysisResponse> orderedFeatures = tracks.stream()
+				.map(track -> mergedFeatureMap.get(track.getTrackId()))
+				.toList();
 
-					TrackAnalysisResponse features = trackAnalysisService.getFeatures(
-							track.getTrackId(),
-							track.getTrackName(),
-							track.getArtistName()
-					);
+		double[] vector = calculateTasteVector(orderedFeatures);
+		String tasteVector = Arrays.toString(vector);
 
-					System.out.println("분석 성공 trackId = " + track.getTrackId());
-					return features;
-				})
-				.collect(Collectors.toList());
+		return new PreparedTasteData(tracks, mergedFeatureMap, tasteVector);
+	}
 
-		// 분석 전부 성공할 시 저장
-		for (int i = 0; i < tracks.size(); i++) {
+	// 곡 1건 조회 -> 여러 곡 한 번에 조회
+	private Map<String, TrackAnalysisResponse> loadCachedFeatures(List<SaveTasteRequest.TrackInfo> tracks) {
+		List<String> trackIds = tracks.stream()
+				.map(SaveTasteRequest.TrackInfo::getTrackId)
+				.toList();
 
-			SaveTasteRequest.TrackInfo track = tracks.get(i);
-			TrackAnalysisResponse features = featureList.get(i);
+		List<TrackAnalysisResponse> cachedList = musicMapper.findFeaturesByTrackIds(trackIds);
 
-			musicMapper.insertAlbumIgnore(
-					track.getAlbumId(),
-					track.getAlbumName(),
-					track.getCoverUrl()
-			);
+		Map<String, TrackAnalysisResponse> cachedMap = new HashMap<>();
+		for (TrackAnalysisResponse response : cachedList) {
+			cachedMap.put(response.getId(), response);
+		}
 
-			// music_features 테이블에 저장, INSERT IGNORE = 이미 있으면 스킵
-			// 여러 유저가 같은 곡 선택해도 특성 데이터는 한 번만 저장됨
-			musicMapper.insertMusicFeaturesIgnore(track, features);
+		return cachedMap;
+	}
 
-			// user_fav_music 테이블에 저장: "이 유저가 이 곡을 좋아한다"는 관계 저장
-			musicMapper.insertUserFavMusic(userId, track.getTrackId());
+	// 캐시에 없는 곡만 제한 병렬 분석
+	private Map<String, TrackAnalysisResponse> fetchMissingFeaturesInParallel(
+			List<SaveTasteRequest.TrackInfo> tracks,
+			Map<String, TrackAnalysisResponse> cachedFeatureMap
+	) {
+		ExecutorService executor = Executors.newFixedThreadPool(ANALYSIS_THREAD_COUNT);
 
+		try {
+			List<CompletableFuture<Map.Entry<String, TrackAnalysisResponse>>> futures = tracks.stream()
+					.filter(track -> !cachedFeatureMap.containsKey(track.getTrackId()))
+					.map(track -> CompletableFuture.supplyAsync(() -> {
+						System.out.println("분석 시작 trackId = " + track.getTrackId());
+
+						TrackAnalysisResponse features = trackAnalysisService.getFeatures(
+								track.getTrackId(),
+								track.getTrackName(),
+								track.getArtistName()
+						);
+
+						System.out.println("분석 성공 trackId = " + track.getTrackId());
+						return Map.entry(track.getTrackId(), features);
+					}, executor))
+					.toList();
+
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+			Map<String, TrackAnalysisResponse> result = new HashMap<>();
+			for (CompletableFuture<Map.Entry<String, TrackAnalysisResponse>> future : futures) {
+				Map.Entry<String, TrackAnalysisResponse> entry = future.join();
+				result.put(entry.getKey(), entry.getValue());
+			}
+
+			return result;
+
+		} catch (CompletionException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "곡 분석 중 오류가 발생했습니다.");
+		} finally {
+			executor.shutdown();
 		}
 
 
+		// RapidAPI(음악 분석 API)에서 가져온 각 곡의 음악적 특성 저장용 리스트
+		// DB 먼저 조회하고 없는 곡만 RapidAPI 병렬 호출
+		// List<TrackAnalysisResponse> featureList = tracks.stream()
+		// 		.map(track -> {
+//
+		// 			TrackAnalysisResponse cachedFeatures =
+		// 					musicMapper.findFeaturesByTrackId(track.getTrackId());
+//
+		// 			if (cachedFeatures != null) {
+		// 				// DB에 있으면 RapidAPI 호출 없이 즉시 반환
+		// 				System.out.println("DB 캐시 히트 - RapidAPI 호출 스킵: " + track.getTrackId());
+		// 				return cachedFeatures;
+		// 			}
+//
+		// 			// DB에 없을 때만 RapidAPI 호출
+		// 			System.out.println("분석 시작 trackId = " + track.getTrackId());
+//
+		// 			TrackAnalysisResponse features = trackAnalysisService.getFeatures(
+		// 					track.getTrackId(),
+		// 					track.getTrackName(),
+		// 					track.getArtistName()
+		// 			);
+//
+		// 			System.out.println("분석 성공 trackId = " + track.getTrackId());
+		// 			return features;
+		// 		})
+		// 		.collect(Collectors.toList());
+
+		// 분석 전부 성공할 시 저장
+		// for (int i = 0; i < tracks.size(); i++) {
+//
+		// 	SaveTasteRequest.TrackInfo track = tracks.get(i);
+		// 	TrackAnalysisResponse features = featureList.get(i);
+//
+		// 	musicMapper.insertAlbumIgnore(
+		// 			track.getAlbumId(),
+		// 			track.getAlbumName(),
+		// 			track.getCoverUrl()
+		// 	);
+//
+		// 	// music_features 테이블에 저장, INSERT IGNORE = 이미 있으면 스킵
+		// 	// 여러 유저가 같은 곡 선택해도 특성 데이터는 한 번만 저장됨
+		// 	musicMapper.insertMusicFeaturesIgnore(track, features);
+//
+		// 	// user_fav_music 테이블에 저장: "이 유저가 이 곡을 좋아한다"는 관계 저장
+		// 	musicMapper.insertUserFavMusic(userId, track.getTrackId());
+//
+		// }
+
+
 		// 10곡의 특성값으로 취향 벡터 계산 (평균 8개 + 표준편차 8개 = 16차원)
-		double[] vector = calculateTasteVector(featureList);
+		// double[] vector = calculateTasteVector(featureList);
 		// MariaDB VEC_FromText()가 받을 수 있는 "[0.5, 0.3, ...]" 형식으로 변환
-		String tasteVector = Arrays.toString(vector);
+		// String tasteVector = Arrays.toString(vector);
 
 		// user_profiles 테이블에 저장
 		// upsert = 없으면 INSERT, 있으면 UPDATE
 		// musicMapper.upsertUserProfile(userId, tasteVector);
 
 		// user_profiles 저장 시 1020 충돌 1회 재시도
-		// saveUserProfileWithRetry(userId, tasteVector);
-		userProfileService.saveWithRetry(userId, tasteVector);
+		   // saveUserProfileWithRetry(userId, tasteVector);
+		// userProfileService.saveWithRetry(userId, tasteVector);
 		// users 테이블의 is_taste_analyzed = true
 		// 취향 탭 진입 시 이 값으로 편집모드 / 프로필모드 분기 : 중요!!
-		musicMapper.updateIsTasteAnalyzed(userId);
+		// musicMapper.updateIsTasteAnalyzed(userId);
 	}
 
 	// user_profiles 저장 시 1020 에러가 나면 1회 재시도
-	private void saveUserProfileWithRetry(Long userId, String tasteVector) {
-		try {
-			saveUserProfile(userId, tasteVector);
-		} catch (UncategorizedSQLException e) {
-			if (e.getSQLException() != null && e.getSQLException().getErrorCode() == 1020) {
-				System.out.println("1020 충돌 발생 - user_profiles 저장 1회 재시도");
-				saveUserProfile(userId, tasteVector);
-			} else {
-				throw e;
-			}
-		}
-	}
+	// private void saveUserProfileWithRetry(Long userId, String tasteVector) {
+	// 	try {
+	// 		saveUserProfile(userId, tasteVector);
+	// 	} catch (UncategorizedSQLException e) {
+	// 		if (e.getSQLException() != null && e.getSQLException().getErrorCode() == 1020) {
+	// 			System.out.println("1020 충돌 발생 - user_profiles 저장 1회 재시도");
+	// 			saveUserProfile(userId, tasteVector);
+	// 		} else {
+	// 			throw e;
+	// 		}
+	// 	}
+	// }
 
 	// user_profiles 저장 실제 로직
-	private void saveUserProfile(Long userId, String tasteVector) {
-		int inserted = musicMapper.insertUserProfileIgnore(userId, tasteVector);
-
-		if (inserted == 0) {  // INSERT IGNORE -> 이미 존재하면 0 반환
-			musicMapper.updateUserProfile(userId, tasteVector);
-		}
-	}
+	// private void saveUserProfile(Long userId, String tasteVector) {
+	// 	int inserted = musicMapper.insertUserProfileIgnore(userId, tasteVector);
+//
+	// 	if (inserted == 0) {  // INSERT IGNORE -> 이미 존재하면 0 반환
+	// 		musicMapper.updateUserProfile(userId, tasteVector);
+	// 	}
+	// }
 
 	private void validateSpotifyTrack(String trackId) {
 		try {
@@ -362,5 +488,14 @@ public class MusicService {
 				.isTasteAnalyzed(isTasteAnalyzed)
 				.tracks(tracks)
 				.build();
+	}
+
+	// 준비 데이터 묶음용 record 추가
+	private record PreparedTasteData(
+			List<SaveTasteRequest.TrackInfo> tracks,
+			Map<String, TrackAnalysisResponse> featureMap,
+			String tasteVector
+	) {
+
 	}
 }

@@ -22,6 +22,9 @@ public interface MusicMapper {
 	void insertUserFavMusic(@Param("userId") Long userId,
 							@Param("musicId") String musicId);
 
+	void insertUserFavMusicBatch(@Param("userId") Long userId,
+								 @Param("musicIds") List<String> musicIds);
+
 	List<TasteResponse.TrackInfo> findTasteTracksByUserId(@Param("userId") Long userId);
 
 	// void upsertUserProfile(@Param("userId") Long userId,
@@ -37,4 +40,7 @@ public interface MusicMapper {
 
 	// trackId로 기존 분석 결과 조회
 	TrackAnalysisResponse findFeaturesByTrackId(@Param("trackId") String trackId);
+
+	// 여러 곡 캐시 한 번에 조회
+	List<TrackAnalysisResponse> findFeaturesByTrackIds(@Param("trackIds") List<String> trackIds);
 }
