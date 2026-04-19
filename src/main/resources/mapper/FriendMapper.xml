@@ -59,6 +59,14 @@
             f.friendship_id   AS friendshipId,
             CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END AS friendId,
             u.nickname,
+            (
+                SELECT gm2.group_nickname
+                FROM group_members gm1
+                JOIN group_members gm2 ON gm1.group_id = gm2.group_id
+                WHERE gm1.user_id = #{userId}
+                  AND gm2.user_id = CASE WHEN f.requester_id = #{userId} THEN f.receiver_id ELSE f.requester_id END
+                LIMIT 1
+            ) AS groupNickname,
             u.profile_image_url AS profileImageUrl,
             f.status
         FROM friendships f

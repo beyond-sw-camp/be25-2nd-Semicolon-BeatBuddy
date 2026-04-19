@@ -6,6 +6,7 @@
     <resultMap id="RecommendationResultMap" type="com.beyond.beatbuddy.recommendation.dto.RecommendationResponseDto">
         <id property="userId" column="userId"/>
         <result property="nickname" column="nickname"/>
+        <result property="groupNickname" column="groupNickname"/>
         <result property="profileImageUrl" column="profileImageUrl"/>
         <result property="gender" column="gender"/>
         <result property="birthYear" column="birthYear"/>
@@ -47,6 +48,7 @@
         SELECT
             u.user_id           AS userId,
             u.nickname,
+            gm.group_nickname   AS groupNickname,
             u.profile_image_url AS profileImageUrl,
             u.gender,
             u.birth_year        AS birthYear,
