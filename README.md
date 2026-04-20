@@ -49,11 +49,11 @@
 ## 🔧 시스템 아키텍처
 
 <details>
-<summary> 🔧 시스템 아키텍처</summary>
+<summary> 시스템 아키텍처</summary>
 
 <br>
 
-![Web App Reference Architecture](https://github.com/user-attachments/assets/4f84192b-62fc-4ae6-897b-765a117cd097)
+> ![Web App Reference Architecture](https://github.com/user-attachments/assets/4f84192b-62fc-4ae6-897b-765a117cd097)
 
 </details>
 
@@ -62,38 +62,15 @@
 ## 📋 요구사항 명세서
 > [요구사항 명세서](https://docs.google.com/spreadsheets/d/1bW-t6EJQ1NW_uqkoiAgVqqeyeDuuh2muPwpv8ee4Y2s/edit?usp=sharing)
 
-> <img width="1253" height="616" alt="0006" src="https://github.com/user-attachments/assets/a673d195-2814-4cab-886d-d116ac2a5081" />
-
-> <img width="1253" height="627" alt="0007" src="https://github.com/user-attachments/assets/ad49f3fb-ba88-427a-a232-f29d37eb51dc" />
-
-> <img width="1253" height="203" alt="0008" src="https://github.com/user-attachments/assets/c3b66b10-d6c9-4647-a729-af592188945c" />
-
->
 ---
 
 ## 🪧 ERD
 > [ERD](https://www.erdcloud.com/d/MEMRtro3g2PtxsnCE)
 
-> <img width="1480" height="789" alt="erd" src="https://github.com/user-attachments/assets/0843a848-2e35-4366-b78b-3ede51581168" />
-
 ---
 
 ## 🗃️ 테이블 명세서
 > [테이블 명세서](https://docs.google.com/spreadsheets/d/1bW-t6EJQ1NW_uqkoiAgVqqeyeDuuh2muPwpv8ee4Y2s/edit?usp=sharing)
-
-> <img width="1592" height="597" alt="0001" src="https://github.com/user-attachments/assets/1bba87ee-df74-443b-aea1-00cbdd34d545" />
-
-> <img width="1592" height="628" alt="0002" src="https://github.com/user-attachments/assets/3a107a6c-a74c-4e3a-a036-8da812653d8b" />
-
-> <img width="1592" height="590" alt="0003" src="https://github.com/user-attachments/assets/0459cda1-1201-4640-a5e6-1e1384a6baab" />
-
-> <img width="1592" height="630" alt="0004" src="https://github.com/user-attachments/assets/0ad86793-67ed-4615-a390-52d8dc7f72f8" />
-
-> <img width="1592" height="570" alt="0005" src="https://github.com/user-attachments/assets/3fae7b04-e835-46cc-82dc-51357f913fc6" />
-
-
-**총 14개 테이블**
-`users` `email_verifications` `albums` `music_features` `user_fav_music` `user_profiles` `user_groups` `group_members` `viewed_profiles` `friendships` `chat_rooms` `chat_room_members` `chat_messages` `notifications`
 
 ---
 
@@ -113,8 +90,12 @@
 
 ---
 
-
 ## 🛠️ 기술 스택
+
+<details>
+> <summary> 기술 스택</summary>
+
+> <br>
 
 | 구분 | 기술 |
 |------|------|
@@ -127,9 +108,16 @@
 | 실시간 채팅 | ![WebSocket](https://img.shields.io/badge/WebSocket(STOMP)-010101?style=for-the-badge) |
 | 외부 API | ![Spotify](https://img.shields.io/badge/SpotifyAPI-1DB954?style=for-the-badge&logo=spotify&logoColor=white)&nbsp;![RapidAPI](https://img.shields.io/badge/RapidAPI-0055DA?style=for-the-badge&logo=rapid&logoColor=white) |
 
+</details>
+
 ---
 
 ## 📌 주요 기술적 의사결정
+
+<details>
+<summary> 주요 기술적 의사결정 </summary>
+
+<br>
 
 **취향 벡터 설계**
 단순 평균이 아닌 평균 + 표준편차를 함께 저장하는 16차원 벡터를 설계했습니다. 표준편차를 포함함으로써 "취향의 폭"까지 반영할 수 있어 매칭 정확도를 높였습니다.
@@ -139,6 +127,8 @@ Redis 대신 DB 테이블로 구현하되 `ON DUPLICATE KEY UPDATE`를 활용해
 
 **채팅방 중복 방지**
 `user_a_id < user_b_id` CHECK 제약 조건과 UNIQUE KEY를 조합해 두 사용자 간 채팅방이 중복 생성되는 것을 DB 레벨에서 원천 차단했습니다.
+
+</details>
 
 ---
 
