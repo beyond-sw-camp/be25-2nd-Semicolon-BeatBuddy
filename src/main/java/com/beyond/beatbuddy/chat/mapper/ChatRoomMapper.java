@@ -60,4 +60,7 @@ public interface ChatRoomMapper {
 
     // 채팅방 목록 조회
     List<ChatRoomListResponse> findAllByUserId(@Param("loginUserId") Long loginUserId);
+
+    // 데드락 방지
+    Long lockChatRoom(@Param("roomId") Long roomId);
 }
