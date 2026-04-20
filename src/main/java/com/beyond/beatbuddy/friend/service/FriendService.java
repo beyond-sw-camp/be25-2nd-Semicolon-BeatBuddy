@@ -9,6 +9,7 @@ import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.global.exception.ConflictException;
 import com.beyond.beatbuddy.global.exception.ForbiddenException;
 import com.beyond.beatbuddy.global.exception.NotFoundException;
+import com.beyond.beatbuddy.group.mapper.GroupMemberMapper;
 import com.beyond.beatbuddy.notification.entity.Notification;
 import com.beyond.beatbuddy.notification.mapper.NotificationMapper;
 import com.beyond.beatbuddy.recommendation.service.RecommendationCacheService;
@@ -24,6 +25,7 @@ public class FriendService {
 
     private final FriendMapper friendMapper;
     private final NotificationMapper notificationMapper;
+    private final GroupMemberMapper groupMemberMapper;
     private final RecommendationCacheService recommendationCacheService;
 
     /**
@@ -35,9 +37,15 @@ public class FriendService {
     @Transactional
     public void sendFriendRequest(Long requesterId, FriendRequest dto) {
         Long receiverId = dto.getReceiverId();
+        Long groupId = dto.getGroupId();
 
         if (requesterId.equals(receiverId)) {
             throw new BadRequestException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
+        }
+
+        if (!groupMemberMapper.existsByGroupIdAndUserId(groupId, requesterId)
+                || !groupMemberMapper.existsByGroupIdAndUserId(groupId, receiverId)) {
+            throw new ForbiddenException("같은 그룹의 멤버에게만 친구 요청을 보낼 수 있습니다.");
         }
 
         if (friendMapper.findPendingRequest(requesterId, receiverId) != null) {
@@ -51,6 +59,7 @@ public class FriendService {
         Friendship friendship = Friendship.builder()
                 .requesterId(requesterId)
                 .receiverId(receiverId)
+                .groupId(groupId)
                 .build();
         friendMapper.insertRequest(friendship);
 
@@ -58,6 +67,7 @@ public class FriendService {
         Notification notification = Notification.builder()
                 .userId(receiverId) // 알림 수신자 = 친구 요청 받는 사람
                 .senderId(requesterId) // 알림 발신자 = 핑 날린 사람
+                .groupId(groupId)
                 .targetId(friendship.getFriendshipId()) // 알림 액션용 friendshipId
                 .type("FRIEND_REQUEST")
                 .message("새로운 친구 요청이 도착했습니다.")
@@ -83,13 +93,14 @@ public class FriendService {
         friendMapper.updateStatus(friendshipId, "ACCEPTED");
 
         // 본인(myUserId)에게 도착했던 친구 요청(FRIEND_REQUEST) 알림 삭제 처리
-        notificationMapper.deleteRequest(myUserId, friendship.getRequesterId(), "FRIEND_REQUEST");
+        notificationMapper.deleteRequest(myUserId, friendship.getRequesterId(), friendship.getGroupId(), "FRIEND_REQUEST");
 
         // FRIEND_003: 요청자(requesterId)에게 수락 알림 발송
 
         Notification notification = Notification.builder()
                 .userId(friendship.getRequesterId()) // 알림 수신자 = 친구 요청을 보낸 사람
                 .senderId(myUserId) // 알림 발신자 = 수락한 사람
+                .groupId(friendship.getGroupId())
                 .targetId(friendshipId)
                 .type("FRIEND_ACCEPT")
                 .message("친구 요청을 수락했습니다.")
@@ -118,7 +129,7 @@ public class FriendService {
         friendMapper.deleteFriend(friendshipId);
 
         // 본인(myUserId)에게 도착했던 친구 요청(FRIEND_REQUEST) 알림 삭제 처리
-        notificationMapper.deleteRequest(myUserId, friendship.getRequesterId(), "FRIEND_REQUEST");
+        notificationMapper.deleteRequest(myUserId, friendship.getRequesterId(), friendship.getGroupId(), "FRIEND_REQUEST");
     }
 
     /**

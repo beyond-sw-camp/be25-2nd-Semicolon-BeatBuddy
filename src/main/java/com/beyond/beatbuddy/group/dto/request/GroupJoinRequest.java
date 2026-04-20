@@ -14,7 +14,6 @@ public class GroupJoinRequest {
     @NotBlank(message = "초대코드는 필수입니다.")
     private String inviteCode;
 
-    @NotBlank(message = "닉네임은 필수입니다.")
     @Size(max = 20, message = "닉네임은 최대 20자까지 가능합니다.")
     private String groupNickname;
 }
