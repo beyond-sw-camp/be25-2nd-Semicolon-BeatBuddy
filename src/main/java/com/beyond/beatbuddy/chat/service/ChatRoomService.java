@@ -5,6 +5,7 @@ import com.beyond.beatbuddy.chat.dto.response.ChatRoomEnterResponse;
 import com.beyond.beatbuddy.chat.dto.response.ChatRoomListResponse;
 import com.beyond.beatbuddy.chat.dto.response.ChatRoomResponse;
 import com.beyond.beatbuddy.chat.entity.ChatRoom;
+import com.beyond.beatbuddy.chat.mapper.ChatMessageMapper;
 import com.beyond.beatbuddy.chat.mapper.ChatRoomMapper;
 import com.beyond.beatbuddy.global.dto.ApiResponse;
 import com.beyond.beatbuddy.global.exception.BadRequestException;
@@ -27,6 +28,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ChatRoomService {
     private final ChatRoomMapper chatRoomMapper;
+    private final ChatMessageMapper chatMessageMapper;
 
     // 채팅방 조회 or 생성
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createChatRoom(Long loginUserId, Long opponentUserId, Long groupId) {
@@ -111,7 +113,9 @@ public class ChatRoomService {
     }
 
     // 채팅방에서 읽기
+    @Transactional
     public void markAsRead(Long roomId, Long loginUserId) {
+        chatRoomMapper.lockChatRoom(roomId);
         chatRoomMapper.updateReadStatus(roomId, loginUserId);
     }
 }
