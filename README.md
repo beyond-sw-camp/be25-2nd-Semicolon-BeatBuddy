@@ -103,7 +103,7 @@
 ## 🪧 ERD
 > [ERD](https://www.erdcloud.com/d/MEMRtro3g2PtxsnCE)
 
-> <img width="1480" height="789" alt="erd" src="https://github.com/user-attachments/assets/0843a848-2e35-4366-b78b-3ede51581168" />
+> <img width="2310" height="1182" alt="음악 취향 매칭 서비스" src="https://github.com/user-attachments/assets/bca90c8f-4018-4615-8130-32e67ce83d8c" />
 
 ---
 
