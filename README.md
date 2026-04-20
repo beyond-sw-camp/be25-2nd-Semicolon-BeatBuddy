@@ -48,8 +48,14 @@
 
 ## 🔧 시스템 아키텍처
 
-> <img width="6337" height="3477" alt="Web App Reference Architecture" src="https://github.com/user-attachments/assets/cdbc3a66-c663-4016-b9c5-fca6e740520d" />
+<details>
+<summary> 🔧 시스템 아키텍처</summary>
 
+<br>
+
+![Web App Reference Architecture](https://github.com/user-attachments/assets/4f84192b-62fc-4ae6-897b-765a117cd097)
+
+</details>
 
 ---
 
