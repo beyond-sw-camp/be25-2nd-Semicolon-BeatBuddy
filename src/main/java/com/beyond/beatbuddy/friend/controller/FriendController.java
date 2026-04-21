@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.beyond.beatbuddy.global.security.UserPrincipal;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,7 @@ public class FriendController {
     @PostMapping("/requests")
     public ResponseEntity<ApiResponse<Void>> sendRequest(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody FriendRequest dto) {
+            @Valid @RequestBody FriendRequest dto) {
         Long myUserId = userPrincipal.getUserId();
         friendService.sendFriendRequest(myUserId, dto);
         return ApiResponse.of(HttpStatus.CREATED, "친구 요청을 성공적으로 보냈습니다.", null);

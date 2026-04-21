@@ -15,6 +15,7 @@ public class Friendship {
     private Long friendshipId;
     private Long requesterId;
     private Long receiverId;
+    private Long groupId;
     private String status; // "PENDING" | "ACCEPTED"
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

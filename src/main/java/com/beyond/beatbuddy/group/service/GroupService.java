@@ -1,5 +1,7 @@
 package com.beyond.beatbuddy.group.service;
 
+import com.beyond.beatbuddy.auth.mapper.UserMapper;
+import com.beyond.beatbuddy.global.entity.User;
 import com.beyond.beatbuddy.global.exception.BadRequestException;
 import com.beyond.beatbuddy.global.exception.ConflictException;
 import com.beyond.beatbuddy.global.exception.NotFoundException;
@@ -24,6 +26,7 @@ public class GroupService {
 
     private final GroupMapper groupMapper;
     private final GroupMemberMapper groupMemberMapper;
+    private final UserMapper userMapper;
 
     public boolean checkGroupNameDuplicate(String groupName) {
         return groupMapper.existsByGroupName(groupName);
@@ -50,6 +53,7 @@ public class GroupService {
     public Long createGroup(GroupCreateRequest request, Long creatorId, String groupImageUrl) {
 
         String inviteCode = request.getInviteCode();
+        String groupNickname = resolveGroupNickname(request.getGroupNickname(), creatorId);
 
         Group group = Group.builder()
                 .groupName(request.getGroupName())
@@ -66,7 +70,7 @@ public class GroupService {
         GroupMember firstMember = GroupMember.builder()
                 .groupId(group.getGroupId())
                 .userId(creatorId)
-                .groupNickname(request.getGroupNickname())
+                .groupNickname(groupNickname)
                 .build();
 
         groupMemberMapper.save(firstMember);
@@ -99,6 +103,7 @@ public class GroupService {
 
         Group group = groupMapper.findById(groupId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다."));
+        String groupNickname = resolveGroupNickname(request.getGroupNickname(), userId);
 
         if (!group.getInviteCode().equals(request.getInviteCode())) {
             throw new BadRequestException("초대코드가 올바르지 않습니다.");
@@ -108,14 +113,14 @@ public class GroupService {
             throw new ConflictException("이미 가입한 그룹입니다.");
         }
 
-        if (groupMemberMapper.existsByGroupIdAndGroupNickname(groupId, request.getGroupNickname())) {
+        if (groupMemberMapper.existsByGroupIdAndGroupNickname(groupId, groupNickname)) {
             throw new ConflictException("이미 사용 중인 닉네임입니다.");
         }
 
         GroupMember member = GroupMember.builder()
                 .groupId(groupId)
                 .userId(userId)
-                .groupNickname(request.getGroupNickname())
+                .groupNickname(groupNickname)
                 .build();
 
         groupMemberMapper.save(member);
@@ -159,5 +164,17 @@ public class GroupService {
         if (updatedCount == 0) {
             groupMapper.deleteById(groupId);
         }
+    }
+
+    private String resolveGroupNickname(String requestedGroupNickname, Long userId) {
+        if (requestedGroupNickname != null && !requestedGroupNickname.isBlank()) {
+            return requestedGroupNickname.trim();
+        }
+
+        User user = userMapper.findByUserId(userId);
+        if (user == null) {
+            throw new NotFoundException("사용자를 찾을 수 없습니다.");
+        }
+        return user.getNickname();
     }
 }

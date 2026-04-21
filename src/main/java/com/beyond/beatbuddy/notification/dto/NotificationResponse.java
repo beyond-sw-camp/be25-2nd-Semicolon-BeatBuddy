@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 public class NotificationResponse {
     private Long notificationId;
     private Long senderId;
+    private Long groupId;
+    private String groupName;
+    private String groupNickname;
     private Long targetId;
     private String type; // FRIEND_REQUEST | FRIEND_ACCEPT | TOTAL_SYSTEM
     private String message;

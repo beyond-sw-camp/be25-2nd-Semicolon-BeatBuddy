@@ -5,13 +5,13 @@
 
     <!-- 친구 요청 생성 -->
     <insert id="insertRequest" useGeneratedKeys="true" keyProperty="friendshipId">
-        INSERT INTO friendships (requester_id, receiver_id, status)
-        VALUES (#{requesterId}, #{receiverId}, 'PENDING')
+        INSERT INTO friendships (requester_id, receiver_id, group_id, status)
+        VALUES (#{requesterId}, #{receiverId}, #{groupId}, 'PENDING')
     </insert>
 
     <!-- PENDING 요청 중복 확인 (양방향) -->
     <select id="findPendingRequest" resultType="com.beyond.beatbuddy.friend.entity.Friendship">
-        SELECT friendship_id, requester_id, receiver_id, status, created_at, updated_at
+        SELECT friendship_id, requester_id, receiver_id, group_id, status, created_at, updated_at
         FROM friendships
         WHERE status = 'PENDING'
           AND (
@@ -23,7 +23,7 @@
 
     <!-- 이미 친구(ACCEPTED) 상태인지 확인 -->
     <select id="findAcceptedFriendship" resultType="com.beyond.beatbuddy.friend.entity.Friendship">
-        SELECT friendship_id, requester_id, receiver_id, status, created_at, updated_at
+        SELECT friendship_id, requester_id, receiver_id, group_id, status, created_at, updated_at
         FROM friendships
         WHERE status = 'ACCEPTED'
           AND (
@@ -35,7 +35,7 @@
 
     <!-- 단건 조회 (수락/거절 처리용) -->
     <select id="findById" resultType="com.beyond.beatbuddy.friend.entity.Friendship">
-        SELECT friendship_id, requester_id, receiver_id, status, created_at, updated_at
+        SELECT friendship_id, requester_id, receiver_id, group_id, status, created_at, updated_at
         FROM friendships
         WHERE friendship_id = #{friendshipId}
     </select>
