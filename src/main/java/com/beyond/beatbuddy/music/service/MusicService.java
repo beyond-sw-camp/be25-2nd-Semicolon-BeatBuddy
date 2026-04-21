@@ -39,6 +39,17 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class MusicService {
+	private static final double[] TASTE_VECTOR_WEIGHTS = {
+			0.2, 0.1, // popularity mean/std
+			1.3, 0.8, // energy mean/std
+			1.5, 0.9, // danceability mean/std
+			0.8, 0.5, // happiness mean/std
+			1.4, 0.8, // acousticness mean/std
+			1.8, 1.0, // instrumentalness mean/std
+			0.7, 0.4, // liveness mean/std
+			1.8, 1.0  // speechiness mean/std
+	};
+
 	private final UserProfileService userProfileService;
 	private final MusicMapper musicMapper;                     // DB 쿼리 담당 인터페이스
 	private final TrackAnalysisService trackAnalysisService;   // RapidAPI 호출 담당
@@ -328,6 +339,10 @@ public class MusicService {
 			double variance = 0;
 			for (int j = 0; j < n; j++) variance += Math.pow(matrix[j][i] - mean, 2);
 			vector[i * 2 + 1] = Math.sqrt(variance / n) / 100.0;
+		}
+
+		for (int i = 0; i < vector.length; i++) {
+			vector[i] *= TASTE_VECTOR_WEIGHTS[i];
 		}
 
 		return vector;
